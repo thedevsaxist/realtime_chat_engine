@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<designSystem name="RealtimeChatDesignSystem">
+
+    <colors>
+        <color name="PrimaryBlue500">#1DA1F2</color>
+        <color name="Neutral900">#0F1419</color>
+        <color name="Neutral700">#536471</color>
+        <color name="Neutral500">#8899A6</color>
+        <color name="Neutral300">#E1E8ED</color>
+        <color name="Neutral200">#EFF3F4</color>
+        <color name="Neutral100">#F7F9F9</color>
+        <color name="Success">#00BA7C</color>
+        <color name="Warning">#F7B928</color>
+        <color name="Error">#F4212E</color>
+    </colors>
+
+    <typography>
+        <textStyle name="ChatName">
+            <fontFamily>SF Pro / Inter</fontFamily>
+            <fontSize>17</fontSize>
+            <fontWeight>600</fontWeight>
+            <lineHeight>22</lineHeight>
+            <color>Neutral900</color>
+        </textStyle>
+
+        <textStyle name="MessageText">
+            <fontFamily>SF Pro / Inter</fontFamily>
+            <fontSize>16</fontSize>
+            <fontWeight>400</fontWeight>
+            <lineHeight>22</lineHeight>
+            <color>Neutral900</color>
+        </textStyle>
+
+        <textStyle name="SecondaryText">
+            <fontFamily>SF Pro / Inter</fontFamily>
+            <fontSize>14</fontSize>
+            <fontWeight>400</fontWeight>
+            <lineHeight>18</lineHeight>
+            <color>Neutral700</color>
+        </textStyle>
+
+        <textStyle name="Timestamp">
+            <fontFamily>SF Pro / Inter</fontFamily>
+            <fontSize>12</fontSize>
+            <fontWeight>400</fontWeight>
+            <lineHeight>16</lineHeight>
+            <color>Neutral500</color>
+        </textStyle>
+    </typography>
+
+    <spacing>
+        <space token="space1">4</space>
+        <space token="space2">8</space>
+        <space token="space3">12</space>
+        <space token="space4">16</space>
+        <space token="space5">20</space>
+        <space token="space6">24</space>
+        <space token="space8">32</space>
+    </spacing>
+
+    <radius>
+        <radiusToken name="XS">6</radiusToken>
+        <radiusToken name="SM">10</radiusToken>
+        <radiusToken name="MD">16</radiusToken>
+        <radiusToken name="LG">20</radiusToken>
+        <radiusToken name="XL">24</radiusToken>
+    </radius>
+
+    <components>
+
+        <component name="ChatListItem">
+            <height>72</height>
+            <avatarSize>40</avatarSize>
+            <avatarSpacing>12</avatarSpacing>
+            <verticalPadding>12</verticalPadding>
+        </component>
+
+        <component name="MessageBubbleIncoming">
+            <backgroundColor>Neutral200</backgroundColor>
+            <paddingVertical>12</paddingVertical>
+            <paddingHorizontal>16</paddingHorizontal>
+            <borderRadius>18</borderRadius>
+            <maxWidthPercent>75</maxWidthPercent>
+        </component>
+
+        <component name="MessageBubbleOutgoing">
+            <backgroundColor>PrimaryBlue500</backgroundColor>
+            <textColor>#FFFFFF</textColor>
+            <paddingVertical>12</paddingVertical>
+            <paddingHorizontal>16</paddingHorizontal>
+            <borderRadius>18</borderRadius>
+            <alignment>right</alignment>
+        </component>
+
+        <component name="MessageInput">
+            <height>48</height>
+            <background>Neutral100</background>
+            <borderColor>Neutral300</borderColor>
+            <borderWidth>1</borderWidth>
+            <borderRadius>24</borderRadius>
+            <placeholderColor>Neutral500</placeholderColor>
+        </component>
+
+        <component name="Avatar">
+            <sizeSmall>32</sizeSmall>
+            <sizeDefault>40</sizeDefault>
+            <sizeLarge>48</sizeLarge>
+            <shape>circle</shape>
+        </component>
+
+        <component name="Icon">
+            <navigationSize>24</navigationSize>
+            <inlineSize>20</inlineSize>
+            <microSize>16</microSize>
+            <strokeWidth>2</strokeWidth>
+        </component>
+
+    </components>
+
+    <layout>
+        <screenPaddingHorizontal>16</screenPaddingHorizontal>
+        <bubbleSpacing>8</bubbleSpacing>
+        <sectionSpacing>16</sectionSpacing>
+    </layout>
+
+    <motion>
+        <animation name="MessageSend">
+            <duration>200ms</duration>
+            <curve>ease-out</curve>
+        </animation>
+
+        <animation name="ScreenTransition">
+            <duration>300ms</duration>
+            <curve>ease</curve>
+        </animation>
+
+        <animation name="TypingIndicator">
+            <duration>800ms</duration>
+            <loop>true</loop>
+        </animation>
+    </motion>
+
+</designSystem>
