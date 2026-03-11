@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:realtime_chat_engine/core/theme/app_theme.dart';
 import 'package:realtime_chat_engine/features/presentation/home_screen.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() {
+  dotenv.load(fileName: ".env");
   runApp(const MyApp());
 }
 
