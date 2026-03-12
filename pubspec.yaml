@@ -32,6 +32,8 @@ dependencies:
   internet_connection_checker_plus: ^2.9.1+2
   google_fonts: ^8.0.2
   flutter_dotenv: ^6.0.0
+  dio: ^5.9.2
+  flutter_riverpod: ^3.1.0
 
 dev_dependencies:
   flutter_test:
@@ -49,19 +51,19 @@ flutter:
 
   assets:
       - .env
-      - assets/fonts/
+      - assets/fonts/SF Pro Rounded/
 
   
   fonts:
     - family: SF Pro Rounded
       fonts:
-        - asset: fonts/SF Pro Rounded/SF-Pro-Rounded-Regular.otf
-        - asset: fonts/SF Pro Rounded/SF-Pro-Rounded-Light.otf
-        - asset: fonts/SF Pro Rounded/SF-Pro-Rounded-Medium.otf
-        - asset: fonts/SF Pro Rounded/SF-Pro-Rounded-Semibold.otf
-        - asset: fonts/SF Pro Rounded/SF-Pro-Rounded-Bold.otf
-        - asset: fonts/SF Pro Rounded/SF-Pro-Rounded-Heavy.otf
-        - asset: fonts/SF Pro Rounded/SF-Pro-Rounded-Black.otf
-        - asset: fonts/SF Pro Rounded/SF-Pro-Rounded-Thin.otf
-        - asset: fonts/SF Pro Rounded/SF-Pro-Rounded-Ultralight.otf
+        - asset: assets/fonts/SF Pro Rounded/SF-Pro-Rounded-Regular.otf
+        - asset: assets/fonts/SF Pro Rounded/SF-Pro-Rounded-Light.otf
+        - asset: assets/fonts/SF Pro Rounded/SF-Pro-Rounded-Medium.otf
+        - asset: assets/fonts/SF Pro Rounded/SF-Pro-Rounded-Semibold.otf
+        - asset: assets/fonts/SF Pro Rounded/SF-Pro-Rounded-Bold.otf
+        - asset: assets/fonts/SF Pro Rounded/SF-Pro-Rounded-Heavy.otf
+        - asset: assets/fonts/SF Pro Rounded/SF-Pro-Rounded-Black.otf
+        - asset: assets/fonts/SF Pro Rounded/SF-Pro-Rounded-Thin.otf
+        - asset: assets/fonts/SF Pro Rounded/SF-Pro-Rounded-Ultralight.otf
   
