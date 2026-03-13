@@ -66,11 +66,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       arguments: state.data.data.values.elementAt(index).first.conversationId,
                     ),
                     leading: CircleAvatar(child: Icon(Icons.person)),
-                    title: Text(state.data.data.values.elementAt(index).first.senderId),
+                    title: Text(state.data.data.values.elementAt(index).last.senderId),
                     titleTextStyle: Theme.of(
                       context,
                     ).textTheme.titleMedium?.copyWith(fontWeight: AppFontWeight.semiBold),
-                    subtitle: Text(state.data.data.values.elementAt(index).first.content),
+                    subtitle: Text(state.data.data.values.elementAt(index).last.content),
                     subtitleTextStyle: Theme.of(
                       context,
                     ).textTheme.bodyMedium?.copyWith(fontWeight: AppFontWeight.regular),

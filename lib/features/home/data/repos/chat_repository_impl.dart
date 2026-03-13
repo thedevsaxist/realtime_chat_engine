@@ -14,7 +14,7 @@ class ChatRepositoryImpl implements ChatRepository {
   @override
   Future<GetMessagesResEntity> getMessages(String conversationId) async {
     try {
-      final cachedMessages = await chatRoom.getMessages("c507b58e-6255-41fe-90d5-4dd5033298ea");
+      final cachedMessages = await chatRoom.getMessages(conversationId);
 
       if (cachedMessages == null /*|| cachedMessages.isEmpty*/ ) {
         debugPrint("Cache was empty, calling API\n");
@@ -32,10 +32,8 @@ class ChatRepositoryImpl implements ChatRepository {
       debugPrint("Chat gotten from cache\n");
       return GetMessagesResEntity(
         status: "success",
-        results: /*cachedMessages.length*/ 2,
-        data: {
-          "messages": [cachedMessages],
-        },
+        results: cachedMessages.messages.length,
+        data: {"messages": cachedMessages.messages},
       );
     } catch (e) {
       throw Exception(e);

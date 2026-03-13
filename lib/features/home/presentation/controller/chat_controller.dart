@@ -27,4 +27,8 @@ class ChatController extends StateNotifier<List<MessageEntity>> {
           state = [];
         });
   }
+
+  void deleteMessage(String messageId){
+
+  }
 }
