@@ -1,13 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hive_ce_flutter/adapters.dart';
+import 'package:realtime_chat_engine/core/config/network/hive_service.dart';
 import 'package:realtime_chat_engine/core/theme/app_theme.dart';
+import 'package:realtime_chat_engine/features/home/domain/entities/get_messages_res_entity.dart';
 import 'package:realtime_chat_engine/features/home/presentation/screens/home_screen.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'features/home/presentation/screens/chat_screen.dart';
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
+  await Hive.initFlutter();
+
+  Hive.registerAdapter(MessageEntityAdapter());
+
+  // await Hive.openLazyBox<MessageEntity>(Constants.chatRoomBox);
+  await HiveService.init();
+
   runApp(const ProviderScope(child: MyApp()));
 }
 

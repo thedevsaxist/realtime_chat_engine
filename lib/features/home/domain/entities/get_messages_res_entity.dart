@@ -1,4 +1,7 @@
+import 'package:hive_ce/hive.dart';
 import 'package:realtime_chat_engine/features/home/data/models/get_messages_res_model.dart';
+
+part 'get_messages_res_entity.g.dart';
 
 class GetMessagesResEntity {
   final String status;
@@ -24,14 +27,24 @@ class GetMessagesResEntity {
   }
 }
 
-class MessageEntity {
+@HiveType(typeId: 0)
+class MessageEntity extends HiveObject {
+  @HiveField(0)
   final String id;
+
+  @HiveField(1)
   final String content;
+
+  @HiveField(2)
   final String senderId;
+
+  @HiveField(3)
   final String conversationId;
+
+  @HiveField(4)
   final String createdAt;
 
-  const MessageEntity({
+  MessageEntity({
     required this.id,
     required this.content,
     required this.senderId,
