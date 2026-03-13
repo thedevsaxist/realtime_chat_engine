@@ -62,7 +62,7 @@ class AppTextStyle {
   static final TextStyle titleMedium = TextStyle(
     fontFamily: fontFamily,
     fontWeight: FontWeight.w500, // Medium
-    fontSize: 16,
+    fontSize: 18,
     height: 1.2,
     letterSpacing: .1,
   );
@@ -79,7 +79,7 @@ class AppTextStyle {
     fontFamily: fontFamily,
     fontWeight: FontWeight.w500, // Medium
     fontSize: 14,
-    height: 1.2,  
+    height: 1.2,
     letterSpacing: .1,
     color: AppColors.neutral500,
   );
@@ -99,7 +99,7 @@ class AppTextStyle {
     fontSize: 11,
     height: 1.2,
     letterSpacing: .1,
-    color: AppColors.neutral500,  
+    color: AppColors.neutral500,
   );
 
   static final TextStyle bodyLarge = TextStyle(

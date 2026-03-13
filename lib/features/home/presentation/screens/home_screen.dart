@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
+import 'package:realtime_chat_engine/core/theme/font_weights.dart';
 import 'package:realtime_chat_engine/features/home/presentation/controller/home_controller.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -45,9 +47,38 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               child: ListView.builder(
                 itemCount: state.data.data.length,
                 itemBuilder: (context, index) {
+                  final timeSent = DateTime.parse(state.data.data.values.elementAt(index).first.createdAt);
+
+                  String time;
+
+                  if (timeSent.isBefore(DateTime.now().subtract(const Duration(days: 1)))) {
+                    final formatter = DateFormat('MM/dd/yyyy');
+                    time = formatter.format(timeSent);
+                  } else {
+                    final formatter = DateFormat('HH:mm');
+                    time = formatter.format(timeSent);
+                  }
+
                   return ListTile(
+                    onTap: () => Navigator.pushNamed(
+                      context,
+                      '/chat',
+                      arguments: state.data.data.values.elementAt(index).first.conversationId,
+                    ),
+                    leading: CircleAvatar(child: Icon(Icons.person)),
                     title: Text(state.data.data.values.elementAt(index).first.senderId),
+                    titleTextStyle: Theme.of(
+                      context,
+                    ).textTheme.titleMedium?.copyWith(fontWeight: AppFontWeight.semiBold),
                     subtitle: Text(state.data.data.values.elementAt(index).first.content),
+                    subtitleTextStyle: Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.copyWith(fontWeight: AppFontWeight.regular),
+
+                    trailing: Text(
+                      time,
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(fontWeight: AppFontWeight.medium),
+                    ),
                   );
                 },
               ),
