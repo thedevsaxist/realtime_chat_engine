@@ -1,27 +1,22 @@
-class CreateMessageResModel {
-  final String conversationId;
-  final String senderId;
-  final String content;
+import 'package:realtime_chat_engine/features/home/data/models/message_model.dart';
 
-  const CreateMessageResModel({
-    required this.conversationId,
-    required this.senderId,
-    required this.content,
-  });
+class CreateMessageResModel {
+  final String status;
+  final MessageModel data;
+
+  const CreateMessageResModel({required this.status, required this.data});
 
   factory CreateMessageResModel.fromJson(Map<String, dynamic> json) {
+    // final data = json["data"] as Map<String, dynamic>;
+
     return CreateMessageResModel(
-      conversationId: json["conversationId"],
-      senderId: json["senderId"],
-      content: json["content"],
+      status: json["status"],
+      data: MessageModel.fromJson(json["data"] as Map<String, dynamic>)
+
     );
-  } 
+  }
 
   Map<String, dynamic> toJson() {
-    return {
-      "conversationId": conversationId,
-      "senderId": senderId,
-      "content": content,
-    };
+    return {"status": status, "data": data};
   }
 }

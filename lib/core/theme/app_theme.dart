@@ -7,18 +7,18 @@ class AppTheme {
   static ThemeData get light {
     return ThemeData(
       brightness: Brightness.light,
-      primaryColor: AppColors.primaryBlue500,
-      scaffoldBackgroundColor: AppColors.neutral100,
+      primaryColor: AppColors.primaryBlue,
+      scaffoldBackgroundColor: Colors.white,
       useMaterial3: true,
       colorScheme: ColorScheme.light(
-        primary: AppColors.primaryBlue500,
+        primary: AppColors.primaryBlue,
         onPrimary: AppColors.neutral100,
         outline: AppColors.neutral500,
       ),
 
       popupMenuTheme: PopupMenuThemeData(
         shape: RoundedRectangleBorder(borderRadius: BorderRadiusGeometry.circular(16)),
-        menuPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 2), 
+        menuPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 2),
         enableFeedback: true,
         position: PopupMenuPosition.under,
         color: AppColors.neutral100,
@@ -43,6 +43,4 @@ class AppTheme {
       ),
     );
   }
-
-  
 }

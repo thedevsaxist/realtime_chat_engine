@@ -1,7 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:realtime_chat_engine/core/theme/font_weights.dart';
+import 'package:realtime_chat_engine/features/home/data/data_source/chat_room.dart';
 import 'package:realtime_chat_engine/features/home/presentation/controller/home_controller.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -12,6 +14,13 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
+  void showError() {
+    final state = ref.watch(homeControllerProvider);
+    if (state is HomeControllerStateError) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.error)));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(homeControllerProvider);
@@ -21,22 +30,24 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
 
     if (state is HomeControllerStateError) {
-      return Scaffold(
-        body: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Center(
-            child: Column(
-              spacing: 32,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(state.error),
-                Text(state.stackTrace),
-                ElevatedButton(onPressed: () => ref.invalidate(homeControllerProvider), child: const Text("Retry")),
-              ],
+      if (kDebugMode) {
+        return Scaffold(
+          body: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Center(
+              child: Column(
+                spacing: 32,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(state.error),
+                  Text(state.stackTrace),
+                  ElevatedButton(onPressed: () => ref.invalidate(homeControllerProvider), child: const Text("Retry")),
+                ],
+              ),
             ),
           ),
-        ),
-      );
+        );
+      }
     }
 
     if (state is HomeControllerStateSuccess) {
@@ -83,6 +94,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 },
               ),
             ),
+
+            ElevatedButton(onPressed: () => ref.read(chatRoomProvider).clearCache(), child: Text("Clear all data")),
+
+            const SizedBox(height: 50),
           ],
         ),
       );

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_ce/hive.dart';
 import 'package:realtime_chat_engine/core/config/network/hive_service.dart';
-import 'package:realtime_chat_engine/features/home/domain/entities/get_messages_res_entity.dart';
+import 'package:realtime_chat_engine/features/home/domain/entities/message_entity.dart';
 
 part 'chat_room.g.dart';
 
@@ -29,12 +29,12 @@ class ChatRoom {
   void addMessage(MessageEntity message) async {
     try {
       // debugPrint("Adding meessage to history");
-      await _chatRoomBox?.put(
-        message.conversationId,
+      await _chatRoomBox?.add(
+        // message.conversationId,
         ChatRoomModel(conversationId: message.conversationId, messages: [message]),
       );
 
-      // debugPrint("Message added to history");
+      // debugPrint("MessageModel added to history");
       // debugPrint("Current state of local storage ${_chatRoomBox?.keys.toList()}");
     } catch (e) {
       debugPrint("Unable to add mesage to chat history$e");
@@ -59,10 +59,20 @@ class ChatRoom {
 
   void deleteMessage(String conversationId, String messageId) async {
     final targetConversation = await _chatRoomBox?.get(conversationId);
+    debugPrint(targetConversation?.messages.toString());
+
     final target = targetConversation?.messages.indexWhere((m) => m.id == messageId);
 
     if (target != -1 && target != null) {
       targetConversation?.messages.removeAt(target);
     }
+
+    final updatedConversation = await _chatRoomBox?.get(conversationId);
+    debugPrint(updatedConversation?.messages.toString());
+  }
+
+  void clearCache() async {
+    final result = await _chatRoomBox?.clear();
+    debugPrint("All messages deleted: $result");
   }
 }

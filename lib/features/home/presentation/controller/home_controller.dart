@@ -43,7 +43,7 @@ class HomeController extends StateNotifier<HomeControllerState> {
         .then((value) {
           state = HomeControllerStateSuccess(value);
         })
-        .onError((error, stackTrace) {
+        .onError((Exception error, StackTrace stackTrace) {
           state = HomeControllerStateError(error.toString(), stackTrace.toString());
         });
   }

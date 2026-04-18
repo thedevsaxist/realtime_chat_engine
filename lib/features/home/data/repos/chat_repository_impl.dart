@@ -1,6 +1,9 @@
 import 'package:flutter/widgets.dart';
 import 'package:realtime_chat_engine/features/home/data/data_source/chat_client.dart';
 import 'package:realtime_chat_engine/features/home/data/data_source/chat_room.dart';
+import 'package:realtime_chat_engine/features/home/domain/entities/create_message_req_entity.dart';
+import 'package:realtime_chat_engine/features/home/domain/entities/create_messages_res_entity.dart';
+import 'package:realtime_chat_engine/features/home/domain/entities/delete_messages_req_entity.dart';
 import 'package:realtime_chat_engine/features/home/domain/entities/get_messages_res_entity.dart';
 import 'package:realtime_chat_engine/features/home/domain/repositories/chat_repository.dart';
 import 'package:riverpod/riverpod.dart';
@@ -35,6 +38,31 @@ class ChatRepositoryImpl implements ChatRepository {
         results: cachedMessages.messages.length,
         data: {"messages": cachedMessages.messages},
       );
+    } catch (e) {
+      throw Exception(e);
+    }
+  }
+
+  @override
+  Future<void> deleteMessages(DeleteMessagesReqEntity req) async {
+    try {
+      chatRoom.deleteMessage(req.conversationId, req.messageId);
+      // await chatClient.deleteMessage(req.toModel());
+    } catch (e) {
+      throw Exception(e);
+    }
+  }
+
+  @override
+  Future<CreateMessageResEntity> createMessage(CreateMessageReqEntity req) async {
+    try {
+      final response = await chatClient.createMessage(req.toModel());
+      final entity = CreateMessageResEntity.fromModel(response);
+
+      final data = entity.data;
+      chatRoom.addMessage(data);
+
+      return entity;
     } catch (e) {
       throw Exception(e);
     }
