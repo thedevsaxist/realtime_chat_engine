@@ -1,18 +1,18 @@
 import 'package:flutter/widgets.dart';
 import 'package:hive_ce/hive.dart';
 import 'package:realtime_chat_engine/core/shared/constants.dart';
-import 'package:realtime_chat_engine/features/home/data/data_source/chat_room.dart';
 
 class HiveService {
-  static LazyBox<ChatRoomModel>? _chatBox;
-  static LazyBox<ChatRoomModel> get chatBox => _chatBox!;
+  static Box? _chatBox;
+  static Box get chatBox => _chatBox!;
 
   static Future<void> init() async {
     try {
-      // debugPrint("Opening box");
-      _chatBox = await Hive.openLazyBox<ChatRoomModel>(Constants.chatRoomBox);
+      /*
+        The rule with Hive and lists of custom types: always open the box untyped, and always cast the result manually after reading.
+      */
+      _chatBox = await Hive.openBox(Constants.chatRoomBox);
 
-      // debugPrint("Box opened successfully");
     } catch (e) {
       debugPrint(e.toString());
     }

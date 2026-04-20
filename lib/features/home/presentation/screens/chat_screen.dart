@@ -64,8 +64,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 fillColor: AppColors.textFieldColor,
                 suffix: GestureDetector(
                   onTap: () {
+                    ref.read(chatControllerProvider.notifier).sendMessage(messageController.text);
                     messageController.clear();
-                    ref.read(chatControllerProvider.notifier).sendMessage;
                   },
 
                   child: Icon(Icons.send),

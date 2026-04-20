@@ -1,78 +1,74 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:hive_ce/hive.dart';
+import 'package:hive_ce/hive_ce.dart';
 import 'package:realtime_chat_engine/core/config/network/hive_service.dart';
+import 'package:realtime_chat_engine/core/shared/constants.dart';
 import 'package:realtime_chat_engine/features/home/domain/entities/message_entity.dart';
 
-part 'chat_room.g.dart';
-
 final chatRoomProvider = Provider<ChatRoom>((ref) => ChatRoom());
-
-@HiveType(typeId: 1)
-class ChatRoomModel {
-  @HiveField(0)
-  final String conversationId;
-
-  @HiveField(1)
-  final List<MessageEntity> messages;
-
-  ChatRoomModel({required this.conversationId, required this.messages});
-}
 
 class ChatRoom {
   /*
     This essentially stores the data in this structure:
     Map<conversationId, List<messages>>
   */
-  static final _chatRoomBox = HiveService.chatBox.isOpen ? HiveService.chatBox : null;
+  static Box get _chatRoomBox => HiveService.chatBox;
 
-  void addMessage(MessageEntity message) async {
+  Future<void> addMessage(MessageEntity message) async {
     try {
-      // debugPrint("Adding meessage to history");
-      await _chatRoomBox?.add(
-        // message.conversationId,
-        ChatRoomModel(conversationId: message.conversationId, messages: [message]),
-      );
+      debugPrint('box name: ${Constants.chatRoomBox}');
+      debugPrint('box is open: ${_chatRoomBox.isOpen}');
+      debugPrint('box path: ${_chatRoomBox.path}');
 
-      // debugPrint("MessageModel added to history");
-      // debugPrint("Current state of local storage ${_chatRoomBox?.keys.toList()}");
+      final result = await _chatRoomBox.get(message.conversationId);
+      final conversation = result != null ? List<MessageEntity>.from(result as List) : <MessageEntity>[];
+      
+      conversation.add(message);
+
+      // debugPrint(conversation.length.toString());
+
+      await _chatRoomBox.put(message.conversationId, conversation);
+
+      final verify = await _chatRoomBox.get(message.conversationId);
+
+      debugPrint('verify after put: $verify, length: ${(verify as List?)?.length}');
     } catch (e) {
-      debugPrint("Unable to add mesage to chat history$e");
+      debugPrint("Unable to add mesage to chat history $e");
     }
   }
 
-  Future<ChatRoomModel?> getMessages(String conversationId) async {
-    // debugPrint("getMessages was called");
-    ChatRoomModel? conversation;
+  Future<List<MessageEntity>> getMessages(String conversationId) async {
     try {
-      conversation = await _chatRoomBox?.get(conversationId);
-
-      if (conversation != null && conversation.messages.isNotEmpty) {
-        debugPrint("Retrieval successful, here's some sample data");
+      final conversation = await _chatRoomBox.get(conversationId);
+      if (conversation != null) {
+        return List<MessageEntity>.from(conversation as List);
       }
     } catch (e) {
       debugPrint("Unable to retrieve cached messages\n$e");
     }
 
-    return conversation;
+    return [];
   }
 
-  void deleteMessage(String conversationId, String messageId) async {
-    final targetConversation = await _chatRoomBox?.get(conversationId);
-    debugPrint(targetConversation?.messages.toString());
-
-    final target = targetConversation?.messages.indexWhere((m) => m.id == messageId);
-
-    if (target != -1 && target != null) {
-      targetConversation?.messages.removeAt(target);
+  Future<void> deleteMessage(String conversationId, String messageId) async {
+    try {
+      final result = await _chatRoomBox.get(conversationId);
+      if (result != null) {
+        final targetConversation = List<MessageEntity>.from(result as List);
+        targetConversation.removeWhere((m) => m.id == messageId);
+        await _chatRoomBox.put(conversationId, targetConversation);
+      }
+    } catch (e) {
+      debugPrint("Unable to delete message\n$e");
     }
-
-    final updatedConversation = await _chatRoomBox?.get(conversationId);
-    debugPrint(updatedConversation?.messages.toString());
   }
 
-  void clearCache() async {
-    final result = await _chatRoomBox?.clear();
-    debugPrint("All messages deleted: $result");
+  Future<void> clearCache() async {
+    try {
+      await _chatRoomBox.clear();
+      debugPrint("All messages deleted");
+    } catch (e) {
+      debugPrint("Unable to clear cache\n$e");
+    }
   }
 }

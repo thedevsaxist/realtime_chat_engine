@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:realtime_chat_engine/core/theme/font_weights.dart';
-import 'package:realtime_chat_engine/features/home/data/data_source/chat_room.dart';
 import 'package:realtime_chat_engine/features/home/presentation/controller/home_controller.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -95,7 +94,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
             ),
 
-            ElevatedButton(onPressed: () => ref.read(chatRoomProvider).clearCache(), child: Text("Clear all data")),
+            ElevatedButton(
+              onPressed: () => ref.read(homeControllerProvider.notifier).clearCache(),
+              child: Text("Clear all data"),
+            ),
 
             const SizedBox(height: 50),
           ],

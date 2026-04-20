@@ -1,6 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/legacy.dart';
+import 'package:realtime_chat_engine/core/shared/constants.dart';
 import 'package:realtime_chat_engine/features/home/domain/entities/get_messages_res_entity.dart';
-import 'package:realtime_chat_engine/features/home/domain/usecases/get_messages_usecase.dart';
+import 'package:realtime_chat_engine/features/home/data/repos/chat_repository_impl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 // part 'home_controller.g.dart';
 
@@ -29,22 +31,31 @@ final homeControllerProvider = StateNotifierProvider<HomeController, HomeControl
 
 class HomeController extends StateNotifier<HomeControllerState> {
   final Ref ref;
-  GetMessagesUsecase? _getMessagesUsecase;
+  ChatRepositoryImpl? _chatRepository;
 
   HomeController(this.ref) : super(HomeControllerStateLoading()) {
-    _getMessagesUsecase = ref.watch(getMessagesUsecaseProvider);
+    _chatRepository = ref.watch(chatRepositoryProvider);
 
     _init();
   }
 
   void _init() {
-    _getMessagesUsecase
-        ?.call("7feae4b2-7ae9-4181-b9fa-d9d7841f5734")
+    _chatRepository
+        ?.getMessages(Constants.conversationId)
         .then((value) {
           state = HomeControllerStateSuccess(value);
         })
         .onError((Exception error, StackTrace stackTrace) {
           state = HomeControllerStateError(error.toString(), stackTrace.toString());
         });
+  }
+
+  void clearCache() {
+    try {
+      _chatRepository?.clearCache();
+      ref.invalidateSelf();
+    } catch (e) {
+      debugPrint("Couldn't clear cache $e");
+    }
   }
 }

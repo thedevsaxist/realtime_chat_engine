@@ -1,31 +1,34 @@
 import 'package:flutter/widgets.dart';
 import 'package:realtime_chat_engine/features/home/data/data_source/chat_client.dart';
 import 'package:realtime_chat_engine/features/home/data/data_source/chat_room.dart';
-import 'package:realtime_chat_engine/features/home/domain/entities/create_message_req_entity.dart';
-import 'package:realtime_chat_engine/features/home/domain/entities/create_messages_res_entity.dart';
+import 'package:realtime_chat_engine/features/home/data/data_source/chat_web_socket.dart';
 import 'package:realtime_chat_engine/features/home/domain/entities/delete_messages_req_entity.dart';
 import 'package:realtime_chat_engine/features/home/domain/entities/get_messages_res_entity.dart';
 import 'package:realtime_chat_engine/features/home/domain/repositories/chat_repository.dart';
 import 'package:riverpod/riverpod.dart';
 
+import '../../domain/entities/create_message_req_entity.dart';
+import '../../domain/entities/message_entity.dart';
+
 class ChatRepositoryImpl implements ChatRepository {
   final ChatClient chatClient;
   final ChatRoom chatRoom;
+  final ChatWebSocket chatWebSocket;
 
-  ChatRepositoryImpl(this.chatClient, this.chatRoom);
+  ChatRepositoryImpl(this.chatClient, this.chatRoom, this.chatWebSocket);
 
   @override
   Future<GetMessagesResEntity> getMessages(String conversationId) async {
     try {
       final cachedMessages = await chatRoom.getMessages(conversationId);
 
-      if (cachedMessages == null /*|| cachedMessages.isEmpty*/ ) {
+      if (cachedMessages.isEmpty) {
         debugPrint("Cache was empty, calling API\n");
 
         final response = await chatClient.getMessages(conversationId);
         final messageEntity = GetMessagesResEntity.fromModel(response);
 
-        for (var message in messageEntity.data["messages"] as List) {
+        for (MessageEntity message in messageEntity.data["messages"]?.cast<MessageEntity>() ?? []) {
           chatRoom.addMessage(message);
         }
 
@@ -35,8 +38,8 @@ class ChatRepositoryImpl implements ChatRepository {
       debugPrint("Chat gotten from cache\n");
       return GetMessagesResEntity(
         status: "success",
-        results: cachedMessages.messages.length,
-        data: {"messages": cachedMessages.messages},
+        results: cachedMessages.length,
+        data: {"messages": cachedMessages},
       );
     } catch (e) {
       throw Exception(e);
@@ -53,22 +56,32 @@ class ChatRepositoryImpl implements ChatRepository {
     }
   }
 
-  @override
-  Future<CreateMessageResEntity> createMessage(CreateMessageReqEntity req) async {
+  Future<void> clearCache() async {
     try {
-      final response = await chatClient.createMessage(req.toModel());
-      final entity = CreateMessageResEntity.fromModel(response);
+      chatRoom.clearCache();  
+    } catch (e) {
+      throw Exception(e);
+    }
+  }
 
-      final data = entity.data;
-      chatRoom.addMessage(data);
+  @override
+  Future<void> createMessage(MessageEntity message) async {
+    try {
+      chatRoom.addMessage(message); // save message to local storage
 
-      return entity;
+      final req = CreateMessageReqEntity(
+        content: message.content,
+        conversationId: message.conversationId,
+        senderId: message.senderId,
+      ).toModel();
+
+      chatWebSocket.sendMessage(req); // upload message via websocket
     } catch (e) {
       throw Exception(e);
     }
   }
 }
 
-final chatRepositoryProvider = Provider(
-  (ref) => ChatRepositoryImpl(ref.read(chatClientProvider), ref.read(chatRoomProvider)),
-);
+final chatRepositoryProvider = Provider((ref) {
+  return ChatRepositoryImpl(ref.read(chatClientProvider), ref.read(chatRoomProvider), ref.read(chatWebSocketProvider));
+});

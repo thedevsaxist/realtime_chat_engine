@@ -6,19 +6,21 @@ part 'message_entity.g.dart';
 @HiveType(typeId: 0)
 class MessageEntity extends HiveObject {
   @HiveField(0)
-  final String id;
+  late String id;
 
   @HiveField(1)
-  final String content;
+  late String content;
 
   @HiveField(2)
-  final String senderId;
+  late String senderId;
 
   @HiveField(3)
-  final String conversationId;
+  late String conversationId;
 
   @HiveField(4)
-  final String createdAt;
+  late String createdAt;
+
+  MessageEntity.empty();
 
   MessageEntity({
     required this.id,

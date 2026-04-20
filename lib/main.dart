@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_ce_flutter/adapters.dart';
 import 'package:realtime_chat_engine/core/config/network/hive_service.dart';
 import 'package:realtime_chat_engine/core/theme/app_theme.dart';
-import 'package:realtime_chat_engine/features/home/data/data_source/chat_room.dart';
 import 'package:realtime_chat_engine/features/home/domain/entities/message_entity.dart';
 import 'package:realtime_chat_engine/features/home/presentation/screens/home_screen.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -16,9 +15,9 @@ void main() async {
   await Hive.initFlutter();
 
   Hive.registerAdapter(MessageEntityAdapter());
-  Hive.registerAdapter(ChatRoomModelAdapter());
 
   await HiveService.init();
+
 
   runApp(const ProviderScope(child: MyApp()));
 }
