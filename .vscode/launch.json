@@ -1,0 +1,28 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "realtime_chat_engine (Simulator 1)",
+      "program": "lib/main.dart",
+      "request": "launch",
+      "type": "dart",
+      "deviceId": "AB5F20BE-E4F2-4BF0-8D53-3829929323B5"
+    },
+    {
+      "name": "realtime_chat_engine (Simulator 2)",
+      "program": "lib/main.dart",
+      "request": "launch",
+      "type": "dart",
+      "deviceId": "596F1A14-2CAA-44C6-94B2-6ABA98651790"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "realtime_chat_engine (Both Simulators)",
+      "configurations": [
+        "realtime_chat_engine (Simulator 1)",
+        "realtime_chat_engine (Simulator 2)"
+      ]
+    }
+  ]
+}
