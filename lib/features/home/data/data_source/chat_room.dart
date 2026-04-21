@@ -5,15 +5,18 @@ import 'package:realtime_chat_engine/core/config/network/hive_service.dart';
 import 'package:realtime_chat_engine/core/shared/constants.dart';
 import 'package:realtime_chat_engine/features/home/domain/entities/message_entity.dart';
 
+import 'chat_store_contract.dart';
+
 final chatRoomProvider = Provider<ChatRoom>((ref) => ChatRoom());
 
-class ChatRoom {
+class ChatRoom implements ChatStoreContract {
   /*
     This essentially stores the data in this structure:
     Map<conversationId, List<messages>>
   */
   static Box get _chatRoomBox => HiveService.chatBox;
 
+  @override
   Future<void> addMessage(MessageEntity message) async {
     try {
       debugPrint('box name: ${Constants.chatRoomBox}');
@@ -37,6 +40,7 @@ class ChatRoom {
     }
   }
 
+  @override
   Future<List<MessageEntity>> getMessages(String conversationId) async {
     try {
       final conversation = await _chatRoomBox.get(conversationId);
@@ -50,6 +54,7 @@ class ChatRoom {
     return [];
   }
 
+  @override
   Future<void> deleteMessage(String conversationId, String messageId) async {
     try {
       final result = await _chatRoomBox.get(conversationId);
@@ -63,6 +68,7 @@ class ChatRoom {
     }
   }
 
+  @override
   Future<void> clearCache() async {
     try {
       await _chatRoomBox.clear();

@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:realtime_chat_engine/features/home/data/data_source/chat_client.dart';
-import 'package:realtime_chat_engine/features/home/data/data_source/chat_room.dart';
+import 'package:realtime_chat_engine/features/home/data/data_source/chat_database.dart';
 import 'package:realtime_chat_engine/features/home/data/data_source/chat_web_socket.dart';
 import 'package:realtime_chat_engine/features/home/domain/entities/delete_messages_req_entity.dart';
 import 'package:realtime_chat_engine/features/home/domain/entities/get_messages_res_entity.dart';
@@ -12,7 +12,8 @@ import '../../domain/entities/message_entity.dart';
 
 class ChatRepositoryImpl implements ChatRepository {
   final ChatClient chatClient;
-  final ChatRoom chatRoom;
+  final ChatDatabase chatRoom;
+  // final ChatRoom chatRoom;
   final ChatWebSocket chatWebSocket;
 
   ChatRepositoryImpl(this.chatClient, this.chatRoom, this.chatWebSocket);
@@ -58,7 +59,7 @@ class ChatRepositoryImpl implements ChatRepository {
 
   Future<void> clearCache() async {
     try {
-      chatRoom.clearCache();  
+      chatRoom.clearCache();
     } catch (e) {
       throw Exception(e);
     }
@@ -83,5 +84,9 @@ class ChatRepositoryImpl implements ChatRepository {
 }
 
 final chatRepositoryProvider = Provider((ref) {
-  return ChatRepositoryImpl(ref.read(chatClientProvider), ref.read(chatRoomProvider), ref.read(chatWebSocketProvider));
+  return ChatRepositoryImpl(
+    ref.read(chatClientProvider),
+    ref.read(chatDatabaseProvider),
+    ref.read(chatWebSocketProvider),
+  );
 });

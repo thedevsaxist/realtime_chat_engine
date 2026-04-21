@@ -3,9 +3,9 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:realtime_chat_engine/core/shared/constants.dart';
 import 'package:realtime_chat_engine/features/home/data/models/create_message_req_model.dart';
-import 'package:web_socket_channel/web_socket_channel.dart';
-import 'package:web_socket_channel/status.dart' as status;
+import 'package:socket_io_client/socket_io_client.dart' as io;
 
 final chatWebSocketProvider = Provider((ref) => ChatWebSocket());
 
@@ -15,8 +15,8 @@ final chatWebSocketProvider = Provider((ref) => ChatWebSocket());
 /// sending outgoing messages, receiving real-time incoming messages, and
 /// automatically attempting to reconnect if the connection drops.
 class ChatWebSocket {
-  /// The active web socket channel.
-  WebSocketChannel? _channel;
+  /// The active socket instance.
+  io.Socket? _socket;
 
   /// Broadcast stream controller that surfaces parsed incoming messages to listeners.
   StreamController<Map<String, dynamic>>? _streamController;
@@ -47,36 +47,58 @@ class ChatWebSocket {
   /// Initializes the web socket and connects it to the specified [conversationId].
   ///
   /// Readies the stream, allows reconnects, and begins the connection process.
-  void connect(String conversationId) async {
+  void connect(String conversationId) {
     _conversationId = conversationId;
     _streamController = StreamController.broadcast();
     _shouldReconnect = true;
 
-    await _connect();
+    _connect();
   }
 
   /// Internal method to establish the web socket channel connection.
-  Future<void> _connect() async {
+  void _connect() {
+    if (_socket != null) {
+      _socket?.dispose();
+    }
+
     try {
-      final uri = Uri(scheme: 'ws', host: 'localhost', port: 3000);
-      // final uri = Uri.parse(Constants.chatWebSocketUrl);
-      _channel = WebSocketChannel.connect(uri);
+      _socket = io.io(
+        Constants.baseUrl,
+        io.OptionBuilder()
+            .setTransports(['websocket'])
+            .disableAutoConnect()
+            .build(),
+      );
 
-      // Notify the server which conversation we intend to join.
-      if (_conversationId != null) {
-        _channel?.sink.add(jsonEncode({"event": "join_conversation", "data": _conversationId}));
-      }
+      _socket?.onConnect((_) {
+        debugPrint("Connected to WebSocket server");
+        _isConnected = true;
+        _reconnectAttempt = 0;
 
-      await _channel?.ready;
+        if (_conversationId != null) {
+          _socket?.emit('join_conversation', _conversationId);
+        }
+      });
 
-      _isConnected = true;
-      _reconnectAttempt = 0;
+      _socket?.on('message_created', _onMessageData);
 
-      debugPrint("Connected to WebSocket server");
+      _socket?.onConnectError((err) {
+        debugPrint("Failed to connect to WebSocket server: $err");
+        _isConnected = false;
+        _scheduleReconnect();
+      });
 
-      _channel?.stream.listen(_onMessage, onError: _onError, onDone: _onDone, cancelOnError: false);
+      _socket?.onError((err) {
+        _onError(err);
+      });
+
+      _socket?.onDisconnect((_) {
+        _onDone();
+      });
+
+      _socket?.connect();
     } catch (e) {
-      debugPrint("Failed to connect to WebSocket server: $e");
+      debugPrint("Failed to setup WebSocket server connection: $e");
       _isConnected = false;
       _scheduleReconnect();
     }
@@ -86,38 +108,42 @@ class ChatWebSocket {
   ///
   /// It fails silently if the web socket is not currently connected.
   void sendMessage(CreateMessageReqModel message) {
-    if (!_isConnected || _channel == null) {
+    if (!_isConnected || _socket == null) {
       debugPrint("Not connected to WebSocket server");
       return;
     }
 
-    final messageJson = jsonEncode({
-      "event": "send_message",
-      "data": {"conversationId": message.conversationId, "senderId": message.senderId, "content": message.content},
-    });
+    final messageData = {
+      "conversationId": message.conversationId,
+      "senderId": message.senderId,
+      "content": message.content,
+    };
 
-    _channel?.sink.add(messageJson);
+    _socket?.emit('send_message', messageData);
   }
 
   /// Handles incoming data events from the web socket.
-  Future<void> _onMessage(dynamic raw) async {
+  void _onMessageData(dynamic data) {
     try {
-      final Map<String, dynamic> data = jsonDecode(raw);
-
-      _streamController?.add(data);
+      if (data is Map<String, dynamic>) {
+        _streamController?.add(data);
+      } else if (data is String) {
+        final Map<String, dynamic> decoded = jsonDecode(data);
+        _streamController?.add(decoded);
+      }
     } catch (e) {
-      debugPrint("Failed to decode message: $e");
+      debugPrint("Failed to process message: $e");
     }
   }
 
   /// Handles errors encountered by the web socket channel.
-  Future<void> _onError(dynamic error) async {
+  void _onError(dynamic error) {
     debugPrint("WebSocket error: $error");
     _isConnected = false;
   }
 
   /// Handles the web socket channel completing (disconnecting).
-  Future<void> _onDone() async {
+  void _onDone() {
     debugPrint("WebSocket disconnected");
     _isConnected = false;
 
@@ -129,7 +155,7 @@ class ChatWebSocket {
   /// Calculates a delay and schedules an attempt to reconnect the web socket.
   ///
   /// Implements exponential back-off based on the current reconnect attempt.
-  Future<void> _scheduleReconnect() async {
+  void _scheduleReconnect() {
     if (_reconnectAttempt >= _maxReconnectAttempts) {
       debugPrint("Max reconnect attempts reached");
       return;
@@ -139,7 +165,7 @@ class ChatWebSocket {
     _reconnectAttempt++;
     debugPrint("Reconnecting in ${delay.inSeconds}s (attempt $_reconnectAttempt/$_maxReconnectAttempts)");
 
-    await Future.delayed(delay, () {
+    Future.delayed(delay, () {
       if (_shouldReconnect) _connect();
     });
   }
@@ -150,8 +176,9 @@ class ChatWebSocket {
   Future<void> disconnect() async {
     _shouldReconnect = false;
     _isConnected = false;
-    _channel?.sink.add(jsonEncode({"event": "leave_conversation", "data": _conversationId}));
-    await _channel?.sink.close(status.goingAway);
+    _socket?.emit('leave_conversation', _conversationId);
+    _socket?.disconnect();
+    _socket?.dispose();
     await _streamController?.close();
   }
 }
