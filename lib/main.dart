@@ -4,6 +4,7 @@ import 'package:realtime_chat_engine/core/theme/app_theme.dart';
 import 'package:realtime_chat_engine/features/home/presentation/screens/home_screen.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
+import 'features/auth/presentation/screens/login_screen.dart';
 import 'features/home/presentation/screens/chat_screen.dart';
 
 void main() async {
@@ -27,7 +28,11 @@ class MyApp extends StatelessWidget {
       title: 'Realtime Chat Engine',
       theme: AppTheme.light,
       initialRoute: "/",
-      routes: {"/": (context) => const HomeScreen(), "/chat": (context) => const ChatScreen()},
+      routes: {
+        "/": (context) => const LoginScreen(),
+        "/home": (context) => const HomeScreen(),
+        "/chat": (context) => const ChatScreen(),
+        },
     );
   }
 }

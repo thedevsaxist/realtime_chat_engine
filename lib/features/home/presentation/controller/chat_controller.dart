@@ -5,6 +5,7 @@ import 'package:realtime_chat_engine/features/home/data/data_source/chat_web_soc
 import 'package:realtime_chat_engine/features/home/domain/entities/message_entity.dart';
 import 'package:realtime_chat_engine/features/home/data/repos/chat_repository_impl.dart';
 import 'package:realtime_chat_engine/features/home/domain/entities/delete_messages_req_entity.dart';
+import 'package:realtime_chat_engine/features/home/domain/repositories/chat_repository.dart';
 import 'package:riverpod/legacy.dart';
 import 'package:uuid/uuid.dart';
 
@@ -14,7 +15,7 @@ class ChatController extends StateNotifier<List<MessageEntity>> {
   final userId = "user-2";
   final conversationId = Constants.conversationId;
   final Ref ref;
-  ChatRepositoryImpl? _chatRepository;
+  ChatRepository? _chatRepository;
   ChatWebSocket? _chatWebSocket;
 
   ChatController(this.ref) : super([]) {

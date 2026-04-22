@@ -4,6 +4,7 @@ import 'package:realtime_chat_engine/core/shared/constants.dart';
 import 'package:realtime_chat_engine/features/home/domain/entities/get_messages_res_entity.dart';
 import 'package:realtime_chat_engine/features/home/data/repos/chat_repository_impl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:realtime_chat_engine/features/home/domain/repositories/chat_repository.dart';
 // part 'home_controller.g.dart';
 
 sealed class HomeControllerState {
@@ -31,7 +32,7 @@ final homeControllerProvider = StateNotifierProvider<HomeController, HomeControl
 
 class HomeController extends StateNotifier<HomeControllerState> {
   final Ref ref;
-  ChatRepositoryImpl? _chatRepository;
+  ChatRepository? _chatRepository;
 
   HomeController(this.ref) : super(HomeControllerStateLoading()) {
     _chatRepository = ref.watch(chatRepositoryProvider);

@@ -57,6 +57,7 @@ class ChatRepositoryImpl implements ChatRepository {
     }
   }
 
+  @override
   Future<void> clearCache() async {
     try {
       chatRoom.clearCache();
@@ -83,7 +84,7 @@ class ChatRepositoryImpl implements ChatRepository {
   }
 }
 
-final chatRepositoryProvider = Provider((ref) {
+final chatRepositoryProvider = Provider<ChatRepository>((ref) {
   return ChatRepositoryImpl(
     ref.read(chatClientProvider),
     ref.read(chatDatabaseProvider),

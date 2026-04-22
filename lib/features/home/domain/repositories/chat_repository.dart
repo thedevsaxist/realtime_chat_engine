@@ -6,4 +6,5 @@ abstract class ChatRepository {
   Future<GetMessagesResEntity> getMessages(String conversationId);
   Future<void> createMessage(MessageEntity message);
   Future<void> deleteMessages(DeleteMessagesReqEntity req);
+  Future<void> clearCache();
 }
