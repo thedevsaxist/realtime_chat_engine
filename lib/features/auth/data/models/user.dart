@@ -1,14 +1,13 @@
 class User {
   final String id;
-  final List<String> conversationIds;
 
-  User({required this.id, required this.conversationIds});
+  User({required this.id});
 
   factory User.fromJson(Map<String, dynamic> json) {
-    return User(id: json['id'], conversationIds: json['conversationIds'].cast<String>());
+    return User(id: json['id']);
   }
 
   Map<String, dynamic> toJson() {
-    return {'id': id, 'conversationIds': conversationIds};
+    return {'id': id};
   }
 }

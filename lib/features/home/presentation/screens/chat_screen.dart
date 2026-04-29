@@ -8,7 +8,8 @@ import 'package:realtime_chat_engine/features/home/domain/entities/message_entit
 import 'package:realtime_chat_engine/features/home/presentation/controller/chat_controller.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
-  const ChatScreen({super.key});
+  final String conversationId;
+  const ChatScreen({super.key, required this.conversationId});
 
   @override
   ConsumerState<ChatScreen> createState() => _ChatScreenState();
@@ -18,7 +19,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   final TextEditingController messageController = TextEditingController();
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(chatControllerProvider);
+    final state = ref.watch(chatControllerProvider(widget.conversationId));
     return Scaffold(
       appBar: AppBar(),
       body: Padding(
@@ -28,12 +29,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             Expanded(
               child: ListView.separated(
                 separatorBuilder: (context, index) => AppSpacing.sh,
-                itemCount: state.length,
+                itemCount: state.messages.length,
                 itemBuilder: (context, index) {
-                  final data = state[index];
+                  final data = state.messages[index];
 
-                  if (data.senderId == "user-1") {
+                  if (data.senderId != state.user.id) {
                     return ChatBubble(
+                      conversationId: widget.conversationId,
                       data: data,
                       alignment: Alignment.centerLeft,
                       bubbleColor: AppColors.grayBubble,
@@ -41,8 +43,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     );
                   }
 
-                  if (data.senderId == "user-2") {
+                  if (data.senderId == state.user.id) {
                     return ChatBubble(
+                      conversationId: widget.conversationId,
                       data: data,
                       alignment: Alignment.centerRight,
                       bubbleColor: AppColors.primaryBlue,
@@ -64,7 +67,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 fillColor: AppColors.textFieldColor,
                 suffix: GestureDetector(
                   onTap: () {
-                    ref.read(chatControllerProvider.notifier).sendMessage(messageController.text);
+                    ref
+                        .read(chatControllerProvider(widget.conversationId).notifier)
+                        .sendMessage(messageController.text);
                     messageController.clear();
                   },
 
@@ -89,12 +94,15 @@ class ChatBubble extends ConsumerWidget {
     required this.alignment,
     required this.textColor,
     required this.bubbleColor,
+    required this.conversationId,
   });
 
   final MessageEntity data;
   final AlignmentGeometry alignment;
   final Color textColor;
   final Color bubbleColor;
+
+  final String conversationId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -108,7 +116,7 @@ class ChatBubble extends ConsumerWidget {
             items: [
               PopupMenuItem(
                 child: GestureDetector(
-                  onTap: () => ref.read(chatControllerProvider.notifier).deleteMessage(data.id),
+                  onTap: () => ref.read(chatControllerProvider(conversationId).notifier).deleteMessage(data.id),
                   child: Row(children: [Icon(Icons.delete_rounded), Text("Delete message")]),
                 ),
               ),

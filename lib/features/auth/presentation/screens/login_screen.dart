@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../controller/login_screen_controller.dart';
+import '../controller/auth_controller.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -16,11 +16,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(loginScreenControllerProvider);
-
-    if (state is Authenticated) {
-      Navigator.pushNamed(context, "/home");
-    }
 
     return Scaffold(
       body: Padding(
@@ -42,15 +37,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
             SizedBox(height: 30),
 
-            ElevatedButton(
-              onPressed: userIdController.text.isEmpty || passwordController.text.isEmpty
-                  ? null
-                  : () {
-                      ref
-                          .read(loginScreenControllerProvider.notifier)
-                          .login(userIdController.text.trim(), passwordController.text.trim());
-                    },
-              child: const Text("Login"),
+            ListenableBuilder(
+              listenable: Listenable.merge([userIdController, passwordController]),
+              builder: (context, chil) {
+                return ElevatedButton(
+                  onPressed: userIdController.text.isEmpty || passwordController.text.isEmpty
+                      ? null
+                      : () {
+                          ref
+                              .read(authControllerProvider.notifier)
+                              .login(userIdController.text.trim(), passwordController.text.trim());
+                        },
+                  child: const Text("Login"),
+                );
+              },
             ),
           ],
         ),

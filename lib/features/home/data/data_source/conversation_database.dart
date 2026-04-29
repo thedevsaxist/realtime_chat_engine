@@ -4,7 +4,9 @@ import 'package:realtime_chat_engine/core/shared/database_helper.dart';
 import 'package:realtime_chat_engine/features/home/data/models/conversation.dart';
 import 'package:sqflite/sqflite.dart';
 
-final conversationDaoProvider = Provider((ref) => ConversationDao(ref.read(databaseHelperProvider)));
+final conversationDaoProvider = Provider(
+  (ref) => ConversationDao(ref.read(databaseHelperProvider)),
+);
 
 class ConversationDao {
   final DatabaseHelper _helper;
@@ -12,10 +14,17 @@ class ConversationDao {
 
   Future<void> insertConversation(Conversation c) async {
     final db = await _helper.database;
-    await db.insert('conversations', c.toJson(), conflictAlgorithm: ConflictAlgorithm.replace);
+    await db.insert(
+      'conversations',
+      c.toJson(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
   }
 
-  Future<void> linkUserToConversation(String userId, String conversationId) async {
+  Future<void> linkUserToConversation(
+    String userId,
+    String conversationId,
+  ) async {
     final db = await _helper.database;
     await db.insert('user_conversations', {
       'userId': userId,
@@ -40,7 +49,11 @@ class ConversationDao {
     return result.map((json) => Conversation.fromJson(json)).toList();
   }
 
-  Future<void> updateLastMessage(String conversationId, String message, int time) async {
+  Future<void> updateLastMessage(
+    String conversationId,
+    String message,
+    int time,
+  ) async {
     final db = await _helper.database;
     await db.update(
       'conversations',

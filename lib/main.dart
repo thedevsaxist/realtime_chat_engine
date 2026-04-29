@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:realtime_chat_engine/core/theme/app_theme.dart';
+import 'package:realtime_chat_engine/features/auth/presentation/controller/auth_controller.dart';
 import 'package:realtime_chat_engine/features/home/presentation/screens/home_screen.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -10,29 +11,31 @@ import 'features/home/presentation/screens/chat_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
-  // await Hive.initFlutter();
-
-  // Hive.registerAdapter(MessageEntityAdapter());
-
-  // await HiveService.init();
 
   runApp(const ProviderScope(child: MyApp()));
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final authState = ref.watch(authControllerProvider);
+    
     return MaterialApp(
       title: 'Realtime Chat Engine',
       theme: AppTheme.light,
-      initialRoute: "/",
-      routes: {
-        "/": (context) => const LoginScreen(),
-        "/home": (context) => const HomeScreen(),
-        "/chat": (context) => const ChatScreen(),
-        },
+      home: switch (authState) {
+        Authenticated() => const HomeScreen(),
+        UnAuthenticated() => const LoginScreen(),
+      },
+      onGenerateRoute: (settings) {
+        if (settings.name == "/chat") {
+          final conversationId = settings.arguments as String;
+          return MaterialPageRoute(builder: (context) => ChatScreen(conversationId: conversationId));
+        }
+        return null;
+      },
     );
   }
 }

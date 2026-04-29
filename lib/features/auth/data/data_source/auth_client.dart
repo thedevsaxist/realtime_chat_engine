@@ -14,8 +14,8 @@ class AuthClient {
     try {
       final response = await dioService.dio.post("/auth/login", data: reqModel.toJson());
       return LoginResModel.fromJson(response.data);
-    } catch (e) {
-      throw Exception(e.toString());
+    } catch (e, st) {
+      throw Exception("[AuthClient.login] -> ${e.toString()} \n $st");
     }
   }
 }

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:realtime_chat_engine/core/theme/font_weights.dart';
+import 'package:realtime_chat_engine/features/auth/presentation/controller/auth_controller.dart';
 import 'package:realtime_chat_engine/features/home/presentation/controller/home_controller.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -15,8 +16,11 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   void showError() {
     final state = ref.watch(homeControllerProvider);
+
     if (state is HomeControllerStateError) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.error)));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(state.error)));
     }
   }
 
@@ -40,7 +44,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 children: [
                   Text(state.error),
                   Text(state.stackTrace),
-                  ElevatedButton(onPressed: () => ref.invalidate(homeControllerProvider), child: const Text("Retry")),
+                  ElevatedButton(
+                    onPressed: () => ref.invalidate(homeControllerProvider),
+                    child: const Text("Retry"),
+                  ),
                 ],
               ),
             ),
@@ -55,39 +62,50 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           children: [
             Expanded(
               child: ListView.builder(
-                itemCount: state.data.data.length,
+                itemCount: state.conversations.length,
                 itemBuilder: (context, index) {
-                  final timeSent = DateTime.parse(state.data.data.values.elementAt(index).first.createdAt);
+                  final conversation = state.conversations[index];
+                  final messages = conversation.data.values.firstOrNull ?? [];
+                  final lastMessage = messages.lastOrNull;
+
+                  if (lastMessage == null) {
+                    return const SizedBox.shrink();
+                  }
+
+                  final timeSent = DateTime.tryParse(lastMessage.createdAt);
 
                   String time;
 
-                  if (timeSent.isBefore(DateTime.now().subtract(const Duration(days: 1)))) {
-                    final formatter = DateFormat('MM/dd/yyyy');
-                    time = formatter.format(timeSent);
+                  if (timeSent != null &&
+                      timeSent.isBefore(
+                        DateTime.now().subtract(const Duration(days: 1)),
+                      )) {
+                    time = DateFormat('MM/dd/yyyy').format(timeSent);
+                  } else if (timeSent != null) {
+                    time = DateFormat('HH:mm').format(timeSent);
                   } else {
-                    final formatter = DateFormat('HH:mm');
-                    time = formatter.format(timeSent);
+                    time = '';
                   }
 
                   return ListTile(
                     onTap: () => Navigator.pushNamed(
                       context,
                       '/chat',
-                      arguments: state.data.data.values.elementAt(index).first.conversationId,
+                      arguments: lastMessage.conversationId,
                     ),
                     leading: CircleAvatar(child: Icon(Icons.person)),
-                    title: Text(state.data.data.values.elementAt(index).last.senderId),
-                    titleTextStyle: Theme.of(
-                      context,
-                    ).textTheme.titleMedium?.copyWith(fontWeight: AppFontWeight.semiBold),
-                    subtitle: Text(state.data.data.values.elementAt(index).last.content),
-                    subtitleTextStyle: Theme.of(
-                      context,
-                    ).textTheme.bodyMedium?.copyWith(fontWeight: AppFontWeight.regular),
+                    title: Text(lastMessage.senderId),
+                    titleTextStyle: Theme.of(context).textTheme.titleMedium
+                        ?.copyWith(fontWeight: AppFontWeight.semiBold),
+                    subtitle: Text(lastMessage.content),
+                    subtitleTextStyle: Theme.of(context).textTheme.bodyMedium
+                        ?.copyWith(fontWeight: AppFontWeight.regular),
 
                     trailing: Text(
                       time,
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(fontWeight: AppFontWeight.medium),
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        fontWeight: AppFontWeight.medium,
+                      ),
                     ),
                   );
                 },
@@ -95,8 +113,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ),
 
             ElevatedButton(
-              onPressed: () => ref.read(homeControllerProvider.notifier).clearCache(),
-              child: Text("Clear all data"),
+              style: ElevatedButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                padding: .symmetric(horizontal: 16, vertical: 12),
+                backgroundColor: Colors.red,
+              ),
+              onPressed: () =>
+                  ref.read(authControllerProvider.notifier).logOut(),
+              child: Text(
+                "Log out",
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
 
             const SizedBox(height: 50),

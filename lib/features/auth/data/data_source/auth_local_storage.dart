@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:realtime_chat_engine/core/shared/database_helper.dart';
 import 'package:realtime_chat_engine/features/auth/data/models/user.dart';
@@ -12,6 +13,20 @@ class AuthLocalStorage {
   Future<void> saveUser(User user) async {
     final db = await _helper.database;
     await db.insert('users', {'id': user.id}, conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  Future<User?> getUser() async {
+    try {
+      final db = await _helper.database;
+      final result = await db.query('users');
+      if (result.isNotEmpty) {
+        debugPrint(result.first.toString());
+        return User.fromJson(result.first);
+      }
+      return null;
+    } catch (e, st) {
+      throw Exception("[AuthLocalStorage.getUser] -> ${e.toString()} \n $st");
+    }
   }
 
   Future<void> deleteUser(String userId) async {

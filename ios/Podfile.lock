@@ -2,14 +2,33 @@ PODS:
   - connectivity_plus (0.0.1):
     - Flutter
   - Flutter (1.0.0)
+  - FMDB/Core (2.7.12)
+  - FMDB/SQLCipher (2.7.12):
+    - FMDB/Core
+    - SQLCipher (~> 4.6)
   - sqflite_darwin (0.0.4):
     - Flutter
     - FlutterMacOS
+  - sqflite_sqlcipher (0.0.1):
+    - Flutter
+    - FMDB/SQLCipher (~> 2.7.5)
+    - SQLCipher (= 4.10.0)
+  - SQLCipher (4.10.0):
+    - SQLCipher/standard (= 4.10.0)
+  - SQLCipher/common (4.10.0)
+  - SQLCipher/standard (4.10.0):
+    - SQLCipher/common
 
 DEPENDENCIES:
   - connectivity_plus (from `.symlinks/plugins/connectivity_plus/ios`)
   - Flutter (from `Flutter`)
   - sqflite_darwin (from `.symlinks/plugins/sqflite_darwin/darwin`)
+  - sqflite_sqlcipher (from `.symlinks/plugins/sqflite_sqlcipher/ios`)
+
+SPEC REPOS:
+  trunk:
+    - FMDB
+    - SQLCipher
 
 EXTERNAL SOURCES:
   connectivity_plus:
@@ -18,11 +37,16 @@ EXTERNAL SOURCES:
     :path: Flutter
   sqflite_darwin:
     :path: ".symlinks/plugins/sqflite_darwin/darwin"
+  sqflite_sqlcipher:
+    :path: ".symlinks/plugins/sqflite_sqlcipher/ios"
 
 SPEC CHECKSUMS:
   connectivity_plus: 2a701ffec2c0ae28a48cf7540e279787e77c447d
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
+  FMDB: 728731dd336af3936ce00f91d9d8495f5718a0e6
   sqflite_darwin: 5a7236e3b501866c1c9befc6771dfd73ffb8702d
+  sqflite_sqlcipher: 1c9c7ceb30cb65dab28712cb2110fdf39b37311c
+  SQLCipher: eb79c64049cb002b4e9fcb30edb7979bf4706dfc
 
 PODFILE CHECKSUM: 3c63482e143d1b91d2d2560aee9fb04ecc74ac7e
 
