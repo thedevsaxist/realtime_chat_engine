@@ -9,26 +9,39 @@ import 'package:realtime_chat_engine/features/home/domain/repositories/chat_repo
 import 'package:riverpod/legacy.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../../auth/data/models/user.dart';
+import '../../../auth/data/models/user_model.dart';
 
 class ChatData {
   final List<MessageEntity> messages;
-  final User user;
+  final UserModel user;
 
   ChatData({required this.messages, required this.user});
 
   factory ChatData.initial() {
-    return ChatData(messages: [], user: User.fromJson({}));
+    return ChatData(
+      messages: [],
+      user: UserModel(
+        id: '',
+        email: '',
+        firstName: '',
+        lastName: '',
+        createdAt: DateTime.fromMillisecondsSinceEpoch(0),
+      ),
+    );
   }
 
-  ChatData copyWith({List<MessageEntity>? messages, User? user}) {
-    return ChatData(messages: messages ?? this.messages, user: user ?? this.user);
+  ChatData copyWith({List<MessageEntity>? messages, UserModel? user}) {
+    return ChatData(
+      messages: messages ?? this.messages,
+      user: user ?? this.user,
+    );
   }
 }
 
-final chatControllerProvider = StateNotifierProvider.family<ChatController, ChatData, String>(
-  (ref, conversationId) => ChatController(ref, conversationId),
-);
+final chatControllerProvider =
+    StateNotifierProvider.family<ChatController, ChatData, String>(
+      (ref, conversationId) => ChatController(ref, conversationId),
+    );
 
 class ChatController extends StateNotifier<ChatData> {
   // final userId = "user-2";
@@ -51,7 +64,7 @@ class ChatController extends StateNotifier<ChatData> {
     final user = await _authLocalStorage?.getUser();
 
     if (user == null) {
-      debugPrint("User not found");
+      debugPrint("UserModel not found");
       return;
     }
 
@@ -79,7 +92,7 @@ class ChatController extends StateNotifier<ChatData> {
         content: message,
         senderId: _userId!,
         conversationId: conversationId,
-        createdAt: DateTime.now().toIso8601String(),
+        createdAt: DateTime.now(),
       );
 
       state = state.copyWith(messages: [...state.messages, payload]);
@@ -92,7 +105,10 @@ class ChatController extends StateNotifier<ChatData> {
 
   void deleteMessage(String messageId) {
     try {
-      final request = DeleteMessagesReqEntity(conversationId: conversationId, messageId: messageId);
+      final request = DeleteMessagesReqEntity(
+        conversationId: conversationId,
+        messageId: messageId,
+      );
       _chatRepository?.deleteMessages(request);
       ref.invalidateSelf();
     } catch (e) {

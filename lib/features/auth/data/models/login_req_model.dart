@@ -1,14 +1,14 @@
 class LoginReqModel {
-  final String userId;
+  final String email;
   final String password;
 
-  LoginReqModel({required this.userId, required this.password});
+  LoginReqModel({required this.email, required this.password});
 
   factory LoginReqModel.fromJson(Map<String, dynamic> json) {
-    return LoginReqModel(userId: json['userId'], password: json['password']);
+    return LoginReqModel(email: json['email'], password: json['password']);
   }
 
   Map<String, dynamic> toJson() {
-    return {'userId': userId, 'password': password};
+    return {'email': email, 'password': password};
   }
 }

@@ -6,7 +6,7 @@ class MessageEntity extends HiveObject {
   late String content;
   late String senderId;
   late String conversationId;
-  late String createdAt;
+  late DateTime createdAt;
 
   MessageEntity({
     required this.id,

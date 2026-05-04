@@ -1,7 +1,8 @@
 // conversation_dao.dart
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:realtime_chat_engine/core/shared/database_helper.dart';
-import 'package:realtime_chat_engine/features/home/data/models/conversation.dart';
+import 'package:realtime_chat_engine/features/home/data/models/conversation_model.dart';
+import 'package:realtime_chat_engine/features/home/data/models/message_model.dart';
 import 'package:sqflite/sqflite.dart';
 
 final conversationDaoProvider = Provider(
@@ -12,13 +13,33 @@ class ConversationDao {
   final DatabaseHelper _helper;
   ConversationDao(this._helper);
 
-  Future<void> insertConversation(Conversation c) async {
+  Future<void> insertConversation(ConversationModel c) async {
     final db = await _helper.database;
+    final MessageModel? last = c.messages.isEmpty
+        ? null
+        : c.messages.reduce(
+            (a, b) => a.createdAt.isAfter(b.createdAt) ? a : b,
+          );
+
     await db.insert(
       'conversations',
-      c.toJson(),
+      {
+        'id': c.id,
+        'createdAt': c.createdAt.millisecondsSinceEpoch,
+        'lastMessage': last?.content ?? '',
+        'lastMessageTime':
+            (last?.createdAt ?? c.createdAt).millisecondsSinceEpoch,
+      },
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
+
+    for (final m in c.messages) {
+      await db.insert(
+        'messages',
+        m.toJson(),
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    }
   }
 
   Future<void> linkUserToConversation(
@@ -33,7 +54,7 @@ class ConversationDao {
   }
 
   // now this JOIN works because everything is in one DB
-  Future<List<Conversation>> getUserConversations(String userId) async {
+  Future<List<ConversationModel>> getUserConversations(String userId) async {
     final db = await _helper.database;
     final result = await db.rawQuery(
       '''
@@ -46,7 +67,7 @@ class ConversationDao {
       [userId],
     );
 
-    return result.map((json) => Conversation.fromJson(json)).toList();
+    return result.map((json) => ConversationModel.fromJson(json)).toList();
   }
 
   Future<void> updateLastMessage(

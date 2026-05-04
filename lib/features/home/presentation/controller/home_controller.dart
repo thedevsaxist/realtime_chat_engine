@@ -1,7 +1,8 @@
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:realtime_chat_engine/features/auth/data/data_source/auth_local_storage.dart';
+import 'package:realtime_chat_engine/features/auth/domain/entities/user_entity.dart';
 import 'package:realtime_chat_engine/features/home/data/data_source/conversation_database.dart';
-import 'package:realtime_chat_engine/features/home/data/models/conversation.dart';
+import 'package:realtime_chat_engine/features/home/data/models/conversation_model.dart';
 import 'package:realtime_chat_engine/features/home/domain/entities/get_messages_res_entity.dart';
 import 'package:realtime_chat_engine/features/home/data/repos/chat_repository_impl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -17,8 +18,9 @@ final class HomeControllerStateLoading extends HomeControllerState {
 }
 
 final class HomeControllerStateSuccess extends HomeControllerState {
+  final UserEntity user;
   final List<GetMessagesResEntity> conversations;
-  const HomeControllerStateSuccess(this.conversations);
+  const HomeControllerStateSuccess(this.conversations, this.user);
 }
 
 final class HomeControllerStateError extends HomeControllerState {
@@ -27,9 +29,10 @@ final class HomeControllerStateError extends HomeControllerState {
   const HomeControllerStateError(this.error, this.stackTrace);
 }
 
-final homeControllerProvider = StateNotifierProvider<HomeController, HomeControllerState>((ref) {
-  return HomeController(ref);
-});
+final homeControllerProvider =
+    StateNotifierProvider<HomeController, HomeControllerState>((ref) {
+      return HomeController(ref);
+    });
 
 class HomeController extends StateNotifier<HomeControllerState> {
   final Ref ref;
@@ -55,20 +58,25 @@ class HomeController extends StateNotifier<HomeControllerState> {
       return;
     }
 
-    final conversationIds = await _conversationDao?.getUserConversations(user.id);
+    final data = await _conversationDao?.getUserConversations(
+      user.id,
+    );
 
-    if (conversationIds == null) {
-      state = HomeControllerStateError("No conversation ids found for this user", "No conversation ids found for this user");
+    if (data == null) {
+      state = HomeControllerStateError(
+        "No conversation ids found for this user",
+        "No conversation ids found for this user",
+      );
       return;
     }
 
     try {
-      for (Conversation conv in conversationIds) {
-        final res = await _chatRepository?.getMessages(conv.id);
+      for (ConversationModel conversation in data) {
+        final res = await _chatRepository?.getMessages(conversation.id);
         conversations.add(res!);
       }
 
-      state = HomeControllerStateSuccess(conversations);
+      state = HomeControllerStateSuccess(conversations, UserEntity.fromModel(user));
     } catch (e) {
       state = HomeControllerStateError(e.toString(), e.toString());
     }

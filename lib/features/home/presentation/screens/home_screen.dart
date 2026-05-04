@@ -18,9 +18,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final state = ref.watch(homeControllerProvider);
 
     if (state is HomeControllerStateError) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(state.error)));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.error)));
     }
   }
 
@@ -58,6 +56,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     if (state is HomeControllerStateSuccess) {
       return Scaffold(
+        appBar: AppBar(
+          centerTitle: false,
+          title: Text(
+            "${state.user.firstName}'s Chats",
+            style: Theme.of(
+              context,
+            ).textTheme.headlineLarge?.copyWith(fontWeight: AppFontWeight.bold),
+          ),
+        ),
         body: Column(
           children: [
             Expanded(
@@ -72,19 +79,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     return const SizedBox.shrink();
                   }
 
-                  final timeSent = DateTime.tryParse(lastMessage.createdAt);
+                  final timeSent = lastMessage.createdAt;
 
                   String time;
 
-                  if (timeSent != null &&
-                      timeSent.isBefore(
-                        DateTime.now().subtract(const Duration(days: 1)),
-                      )) {
+                  if (timeSent.isBefore(DateTime.now().subtract(const Duration(days: 1)))) {
                     time = DateFormat('MM/dd/yyyy').format(timeSent);
-                  } else if (timeSent != null) {
-                    time = DateFormat('HH:mm').format(timeSent);
                   } else {
-                    time = '';
+                    time = DateFormat('HH:mm').format(timeSent);
                   }
 
                   return ListTile(
@@ -95,17 +97,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     ),
                     leading: CircleAvatar(child: Icon(Icons.person)),
                     title: Text(lastMessage.senderId),
-                    titleTextStyle: Theme.of(context).textTheme.titleMedium
-                        ?.copyWith(fontWeight: AppFontWeight.semiBold),
+                    titleTextStyle: Theme.of(
+                      context,
+                    ).textTheme.titleMedium?.copyWith(fontWeight: AppFontWeight.semiBold),
                     subtitle: Text(lastMessage.content),
-                    subtitleTextStyle: Theme.of(context).textTheme.bodyMedium
-                        ?.copyWith(fontWeight: AppFontWeight.regular),
+                    subtitleTextStyle: Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.copyWith(fontWeight: AppFontWeight.regular),
 
                     trailing: Text(
                       time,
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        fontWeight: AppFontWeight.medium,
-                      ),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.labelSmall?.copyWith(fontWeight: AppFontWeight.medium),
                     ),
                   );
                 },
@@ -114,19 +118,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 padding: .symmetric(horizontal: 16, vertical: 12),
                 backgroundColor: Colors.red,
               ),
-              onPressed: () =>
-                  ref.read(authControllerProvider.notifier).logOut(),
+              onPressed: () => ref.read(authControllerProvider.notifier).logOut(),
               child: Text(
                 "Log out",
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                   color: Colors.white,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: AppFontWeight.semiBold,
                 ),
               ),
             ),

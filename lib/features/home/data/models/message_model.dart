@@ -1,9 +1,11 @@
+import 'package:realtime_chat_engine/core/shared/date_time_json.dart';
+
 class MessageModel {
   final String id;
   final String content;
   final String senderId;
   final String conversationId;
-  final String createdAt;
+  final DateTime createdAt;
 
   const MessageModel({
     required this.id,
@@ -15,21 +17,21 @@ class MessageModel {
 
   factory MessageModel.fromJson(Map<String, dynamic> json) {
     return MessageModel(
-      id: json["id"],
-      content: json["content"],
-      senderId: json["senderId"],
-      conversationId: json["conversationId"],
-      createdAt: json["createdAt"],
+      id: json['id'] as String,
+      content: json['content'] as String,
+      senderId: json['senderId'] as String,
+      conversationId: json['conversationId'] as String,
+      createdAt: dateTimeFromJson(json['createdAt']),
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      "id": id,
-      "content": content,
-      "senderId": senderId,
-      "conversationId": conversationId,
-      "createdAt": createdAt,
+      'id': id,
+      'content': content,
+      'senderId': senderId,
+      'conversationId': conversationId,
+      'createdAt': createdAt.millisecondsSinceEpoch,
     };
   }
 }
