@@ -1,4 +1,4 @@
-import 'package:realtime_chat_engine/features/home/data/models/delete_messages_req_model.dart';
+import 'package:realtime_chat_engine/features/chat/data/models/delete_messages_req_model.dart';
 
 class DeleteMessagesReqEntity {
   final String messageId;

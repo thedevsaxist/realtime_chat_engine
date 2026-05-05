@@ -6,7 +6,7 @@ import 'package:realtime_chat_engine/features/auth/presentation/widget/auth_inte
 import 'package:realtime_chat_engine/features/home/presentation/screens/home_screen.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-import 'features/home/presentation/screens/chat_screen.dart';
+import 'features/chat/presentation/screens/chat_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

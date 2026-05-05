@@ -4,9 +4,9 @@ import 'package:flutter_riverpod/legacy.dart';
 import 'package:realtime_chat_engine/features/auth/data/data_source/auth_local_storage.dart';
 import 'package:realtime_chat_engine/features/auth/data/data_source/auth_secure_storage.dart';
 import 'package:realtime_chat_engine/features/auth/domain/entities/register_req_entity.dart';
-import 'package:realtime_chat_engine/features/home/data/repos/chat_repository_impl.dart';
+import 'package:realtime_chat_engine/features/chat/data/repo/chat_repository_impl.dart';
 
-import '../../../home/domain/repositories/chat_repository.dart';
+import '../../../chat/domain/repositories/chat_repository.dart';
 import '../../data/repository/auth_repository_impl.dart';
 import '../../domain/entities/login_req_entity.dart';
 import '../../domain/repository/auth_repository.dart';

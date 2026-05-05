@@ -3,7 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:realtime_chat_engine/features/home/data/models/create_message_req_model.dart';
+import 'package:realtime_chat_engine/features/chat/data/models/create_message_req_model.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:web_socket_channel/status.dart' as status;
 

@@ -1,4 +1,4 @@
-import 'package:realtime_chat_engine/features/home/data/models/create_message_req_model.dart';
+import 'package:realtime_chat_engine/features/chat/data/models/create_message_req_model.dart';
 
 class CreateMessageReqEntity {
   final String conversationId;

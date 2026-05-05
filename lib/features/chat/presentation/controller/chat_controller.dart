@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:realtime_chat_engine/features/auth/data/data_source/auth_local_storage.dart';
-import 'package:realtime_chat_engine/features/home/data/data_source/chat_web_socket.dart';
+import 'package:realtime_chat_engine/features/chat/data/data_source/chat_web_socket.dart';
 import 'package:realtime_chat_engine/features/home/domain/entities/message_entity.dart';
-import 'package:realtime_chat_engine/features/home/data/repos/chat_repository_impl.dart';
-import 'package:realtime_chat_engine/features/home/domain/entities/delete_messages_req_entity.dart';
-import 'package:realtime_chat_engine/features/home/domain/repositories/chat_repository.dart';
+import 'package:realtime_chat_engine/features/chat/data/repo/chat_repository_impl.dart';
+import 'package:realtime_chat_engine/features/chat/domain/entities/delete_messages_req_entity.dart';
+import 'package:realtime_chat_engine/features/chat/domain/repositories/chat_repository.dart';
 import 'package:riverpod/legacy.dart';
 import 'package:uuid/uuid.dart';
 

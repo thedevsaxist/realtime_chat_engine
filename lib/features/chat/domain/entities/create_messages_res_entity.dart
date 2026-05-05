@@ -1,4 +1,4 @@
-import 'package:realtime_chat_engine/features/home/data/models/create_message_res_model.dart';
+import 'package:realtime_chat_engine/features/chat/data/models/create_message_res_model.dart';
 import 'package:realtime_chat_engine/features/home/domain/entities/message_entity.dart';
 
 class CreateMessageResEntity {

@@ -1,14 +1,14 @@
 import 'package:flutter/widgets.dart';
-import 'package:realtime_chat_engine/features/home/data/data_source/chat_client.dart';
-import 'package:realtime_chat_engine/features/home/data/data_source/chat_database.dart';
-import 'package:realtime_chat_engine/features/home/data/data_source/chat_web_socket.dart';
-import 'package:realtime_chat_engine/features/home/domain/entities/delete_messages_req_entity.dart';
+import 'package:realtime_chat_engine/features/chat/data/data_source/chat_client.dart';
+import 'package:realtime_chat_engine/features/chat/data/data_source/chat_database.dart';
+import 'package:realtime_chat_engine/features/chat/data/data_source/chat_web_socket.dart';
+import 'package:realtime_chat_engine/features/chat/domain/entities/delete_messages_req_entity.dart';
 import 'package:realtime_chat_engine/features/home/domain/entities/get_messages_res_entity.dart';
-import 'package:realtime_chat_engine/features/home/domain/repositories/chat_repository.dart';
+import 'package:realtime_chat_engine/features/chat/domain/repositories/chat_repository.dart';
 import 'package:riverpod/riverpod.dart';
 
 import '../../domain/entities/create_message_req_entity.dart';
-import '../../domain/entities/message_entity.dart';
+import '../../../home/domain/entities/message_entity.dart';
 
 class ChatRepositoryImpl implements ChatRepository {
   final ChatClient chatClient;

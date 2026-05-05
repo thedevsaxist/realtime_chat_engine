@@ -2,9 +2,9 @@ import 'package:realtime_chat_engine/core/shared/database_helper.dart';
 import 'package:realtime_chat_engine/features/home/data/models/message_model.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:realtime_chat_engine/features/home/data/data_source/chat_store_contract.dart';
+import 'package:realtime_chat_engine/features/chat/data/data_source/chat_store_contract.dart';
 
-import '../../domain/entities/message_entity.dart';
+import '../../../home/domain/entities/message_entity.dart';
 final chatDatabaseProvider = Provider((ref) => ChatDatabase(ref.read(databaseHelperProvider)));
 
 class ChatDatabase implements ChatStoreContract {

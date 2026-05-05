@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:realtime_chat_engine/core/config/network/dio_service.dart';
-import 'package:realtime_chat_engine/features/home/data/models/delete_messages_req_model.dart';
+import 'package:realtime_chat_engine/features/chat/data/models/delete_messages_req_model.dart';
 import 'package:realtime_chat_engine/features/home/data/models/get_messages_res_model.dart';
 import 'package:riverpod/riverpod.dart';
 

@@ -4,9 +4,9 @@ import 'package:realtime_chat_engine/features/auth/domain/entities/user_entity.d
 import 'package:realtime_chat_engine/features/home/data/data_source/conversation_database.dart';
 import 'package:realtime_chat_engine/features/home/data/models/conversation_model.dart';
 import 'package:realtime_chat_engine/features/home/domain/entities/get_messages_res_entity.dart';
-import 'package:realtime_chat_engine/features/home/data/repos/chat_repository_impl.dart';
+import 'package:realtime_chat_engine/features/chat/data/repo/chat_repository_impl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:realtime_chat_engine/features/home/domain/repositories/chat_repository.dart';
+import 'package:realtime_chat_engine/features/chat/domain/repositories/chat_repository.dart';
 // part 'home_controller.g.dart';
 
 sealed class HomeControllerState {

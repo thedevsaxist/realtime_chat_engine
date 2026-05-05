@@ -5,7 +5,7 @@ import 'package:realtime_chat_engine/core/theme/app_spacing.dart';
 import 'package:realtime_chat_engine/core/theme/padding_styles.dart';
 import 'package:realtime_chat_engine/core/theme/radius_styles.dart';
 import 'package:realtime_chat_engine/features/home/domain/entities/message_entity.dart';
-import 'package:realtime_chat_engine/features/home/presentation/controller/chat_controller.dart';
+import 'package:realtime_chat_engine/features/chat/presentation/controller/chat_controller.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
   final String conversationId;

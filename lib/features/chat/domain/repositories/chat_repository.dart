@@ -1,4 +1,4 @@
-import 'package:realtime_chat_engine/features/home/domain/entities/delete_messages_req_entity.dart';
+import 'package:realtime_chat_engine/features/chat/domain/entities/delete_messages_req_entity.dart';
 import 'package:realtime_chat_engine/features/home/domain/entities/get_messages_res_entity.dart';
 import 'package:realtime_chat_engine/features/home/domain/entities/message_entity.dart';
 
