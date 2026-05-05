@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -5,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:realtime_chat_engine/core/theme/font_weights.dart';
 import 'package:realtime_chat_engine/features/auth/presentation/controller/auth_controller.dart';
 import 'package:realtime_chat_engine/features/home/presentation/controller/home_controller.dart';
+import 'package:realtime_chat_engine/features/home/presentation/screens/available_users.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -134,6 +136,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
             const SizedBox(height: 50),
           ],
+        ),
+
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            showCupertinoSheet(
+              context: context,
+              builder: (context) {
+                return AvailableUsers(currentUserId: state.user.id);
+              },
+            );
+          },
+          child: Icon(Icons.edit),
         ),
       );
     }
