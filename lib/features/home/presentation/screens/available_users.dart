@@ -58,8 +58,6 @@ class _AvailableUsersState extends ConsumerState<AvailableUsers> {
                     .read(availableUsersController.notifier)
                     .createConversation(userId: widget.currentUserId, selectedUserId: user.id);
 
-                print("Conversation id $conversationId");
-
                 if (conversationId.isNotEmpty) {
                   if (!context.mounted) return;
                   Navigator.pop(context);

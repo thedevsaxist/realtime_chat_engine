@@ -1,4 +1,3 @@
-import 'package:dio/dio.dart';
 import 'package:realtime_chat_engine/core/config/network/dio_service.dart';
 import 'package:realtime_chat_engine/features/chat/data/models/delete_messages_req_model.dart';
 import 'package:realtime_chat_engine/features/home/data/models/get_conversations_res_model.dart';
@@ -25,50 +24,31 @@ class ChatClient {
   // }
 
   Future<CreateConversationResModel> createConversation(CreateConversationReqModel req) async {
-    try {
-      final response = await dioService.dio.post("/conversations", data: req.toJson());
-      return CreateConversationResModel.fromJson(response.data);
-    } on DioException catch (e) {
-      throw Exception(e.message);
-    }
+    final response = await dioService.dio.post("/conversations", data: req.toJson());
+    return CreateConversationResModel.fromJson(response.data);
   }
 
   Future<GetConversationsResModel> getConversations(String userId) async {
-    try {
-      final response = await dioService.dio.get(
-        "/conversations",
-        queryParameters: {"userId": userId},
-      );
-      return GetConversationsResModel.fromJson(response.data);
-    } on DioException catch (e) {
-      throw Exception(e.message);
-    }
+    final response = await dioService.dio.get(
+      "/conversations",
+      queryParameters: {"userId": userId},
+    );
+    return GetConversationsResModel.fromJson(response.data);
   }
 
   Future<GetMessagesResModel> getMessages(String conversationId) async {
-    try {
-      final response = await dioService.dio.get(
-        "/messages",
-        queryParameters: {"conversationId": conversationId},
-      );
-
-      final result = response.data as Map<String, dynamic>;
-
-      return GetMessagesResModel.fromJson(result);
-    } on DioException catch (e) {
-      throw Exception(e.message);
-    }
+    final response = await dioService.dio.get(
+      "/messages",
+      queryParameters: {"conversationId": conversationId},
+    );
+    return GetMessagesResModel.fromJson(response.data as Map<String, dynamic>);
   }
 
   Future<void> deleteMessage(DeleteMessagesReqModel req) async {
-    try {
-      await dioService.dio.delete(
-        "/messages/${req.messageId}",
-        queryParameters: {"conversationId": req.conversationId},
-      );
-    } on DioException catch (e) {
-      throw Exception(e.message);
-    }
+    await dioService.dio.delete(
+      "/messages/${req.messageId}",
+      queryParameters: {"conversationId": req.conversationId},
+    );
   }
 }
 

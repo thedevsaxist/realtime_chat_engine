@@ -29,13 +29,11 @@ class AuthRepositoryImpl implements AuthRepository {
 
       if (response.token.isNotEmpty) {
         await _authLocalStorage.saveUser(response.user);
-        await _authSecureStorage.saveToken(response.token);
+        await _authSecureStorage.saveToken(response.token, response.refreshToken);
       }
       return RegisterResEntity.fromModel(response);
     } catch (e, st) {
-      throw Exception(
-        "[AuthRepositoryImpl.register] -> ${e.toString()} \n $st",
-      );
+      throw Exception("[AuthRepositoryImpl.register] -> ${e.toString()} \n $st");
     }
   }
 
@@ -46,17 +44,14 @@ class AuthRepositoryImpl implements AuthRepository {
 
       if (result.token.isNotEmpty) {
         await _authLocalStorage.saveUser(result.user);
-        await _authSecureStorage.saveToken(result.token);
+        await _authSecureStorage.saveToken(result.token, result.refreshToken);
 
         // Populate both tables used by `ConversationDao.getUserConversations()`:
         // - `conversations`: the INNER JOIN base table
         // - `user_conversations`: the join/link table
         for (final conversation in result.conversations) {
           await _conversationDao.insertConversation(conversation);
-          await _conversationDao.linkUserToConversation(
-            result.user.id,
-            conversation.id,
-          );
+          await _conversationDao.linkUserToConversation(result.user.id, conversation.id);
         }
       }
 

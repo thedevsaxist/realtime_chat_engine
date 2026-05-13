@@ -15,23 +15,35 @@ class AuthSecureStorage {
 
     _database ??= await openDatabase(
       path,
-      version: 1,
+      version: 2,
       password: Constants.authDbPassword,
       onCreate: (db, version) {
-        db.execute("CREATE TABLE auth (token TEXT)");
+        db.execute("CREATE TABLE auth (token TEXT, refreshToken TEXT)");
+      },
+      onUpgrade: (db, oldVersion, newVersion) {
+        if (oldVersion < 2) {
+          db.execute("ALTER TABLE auth ADD COLUMN refreshToken TEXT");
+        }
       },
     );
     return _database!;
   }
 
-  Future<void> saveToken(String token) async {
+  Future<void> saveToken(String token, String refreshToken) async {
     try {
       final db = await database;
       await db.delete("auth");
-      await db.insert("auth", {"token": token});
+      await db.insert("auth", {"token": token, "refreshToken": refreshToken});
     } catch (e) {
       debugPrint("Unable to save token");
     }
+  }
+
+  Future<String?> getRefreshToken() async {
+    final db = await database;
+    final result = await db.query("auth", limit: 1);
+    if (result.isNotEmpty) return result.first['refreshToken'] as String?;
+    return null;
   }
 
   Future<String?> getToken() async {
@@ -43,7 +55,7 @@ class AuthSecureStorage {
     return null;
   }
 
-  Future<void> deleteToken() async {
+  Future<void> deleteTokens() async {
     final db = await database;
     await db.delete("auth");
   }

@@ -110,7 +110,7 @@ class AuthController extends StateNotifier<AuthState> {
     try {
       final currentState = state;
       if (currentState is Authenticated) {
-        await _authSecureStorage?.deleteToken();
+        await _authSecureStorage?.deleteTokens();
         await _authLocalStorage?.deleteUser(currentState.userId);
       }
       _chatRepository?.clearCache();

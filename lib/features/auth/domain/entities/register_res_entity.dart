@@ -3,15 +3,20 @@ import 'package:realtime_chat_engine/features/auth/domain/entities/user_entity.d
 
 class RegisterResEntity {
   final String token;
+  final String refreshToken;
   final UserEntity user;
 
-  RegisterResEntity({required this.token, required this.user});
+  RegisterResEntity({required this.token, required this.refreshToken, required this.user});
 
   factory RegisterResEntity.fromModel(RegisterResModel model) {
-    return RegisterResEntity(token: model.token, user: UserEntity.fromModel(model.user));
+    return RegisterResEntity(
+      token: model.token,
+      refreshToken: model.refreshToken,
+      user: UserEntity.fromModel(model.user),
+    );
   }
 
   RegisterResModel toModel() {
-    return RegisterResModel(token: token, user: user.toModel());
+    return RegisterResModel(token: token, refreshToken: refreshToken, user: user.toModel());
   }
 }
