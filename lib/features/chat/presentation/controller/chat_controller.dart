@@ -54,8 +54,8 @@ class ChatController extends StateNotifier<ChatData> {
   AuthLocalStorage? _authLocalStorage;
 
   ChatController(this.ref, this.conversationId) : super(ChatData.initial()) {
-    _chatRepository = ref.watch(chatRepositoryProvider);
-    _chatWebSocket = ref.watch(chatWebSocketProvider);
+    _chatRepository = ref.read(chatRepositoryProvider);
+    _chatWebSocket = ref.read(chatWebSocketProvider);
 
     _init();
   }

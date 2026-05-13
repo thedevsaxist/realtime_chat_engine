@@ -1,8 +1,12 @@
 import 'package:dio/dio.dart';
 import 'package:realtime_chat_engine/core/config/network/dio_service.dart';
 import 'package:realtime_chat_engine/features/chat/data/models/delete_messages_req_model.dart';
+import 'package:realtime_chat_engine/features/home/data/models/get_conversations_res_model.dart';
 import 'package:realtime_chat_engine/features/home/data/models/get_messages_res_model.dart';
 import 'package:riverpod/riverpod.dart';
+
+import '../models/create_conversation_req_model.dart';
+import '../models/create_conversation_res_model.dart';
 
 class ChatClient {
   final DioService dioService;
@@ -20,9 +24,33 @@ class ChatClient {
   //   }
   // }
 
+  Future<CreateConversationResModel> createConversation(CreateConversationReqModel req) async {
+    try {
+      final response = await dioService.dio.post("/conversations", data: req.toJson());
+      return CreateConversationResModel.fromJson(response.data);
+    } on DioException catch (e) {
+      throw Exception(e.message);
+    }
+  }
+
+  Future<GetConversationsResModel> getConversations(String userId) async {
+    try {
+      final response = await dioService.dio.get(
+        "/conversations",
+        queryParameters: {"userId": userId},
+      );
+      return GetConversationsResModel.fromJson(response.data);
+    } on DioException catch (e) {
+      throw Exception(e.message);
+    }
+  }
+
   Future<GetMessagesResModel> getMessages(String conversationId) async {
     try {
-      final response = await dioService.dio.get("/messages", queryParameters: {"conversationId": conversationId});
+      final response = await dioService.dio.get(
+        "/messages",
+        queryParameters: {"conversationId": conversationId},
+      );
 
       final result = response.data as Map<String, dynamic>;
 

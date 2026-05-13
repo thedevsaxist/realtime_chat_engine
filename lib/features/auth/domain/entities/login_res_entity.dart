@@ -1,4 +1,4 @@
-import 'package:realtime_chat_engine/features/auth/domain/entities/conversation_entity.dart';
+import 'package:realtime_chat_engine/features/home/domain/entities/conversation_entity.dart';
 import 'package:realtime_chat_engine/features/auth/domain/entities/user_entity.dart';
 import 'package:realtime_chat_engine/features/auth/data/models/login_res_model.dart';
 

@@ -53,6 +53,19 @@ class _AvailableUsersState extends ConsumerState<AvailableUsers> {
             final user = users[index];
 
             return ListTile(
+              onTap: () async {
+                final conversationId = await ref
+                    .read(availableUsersController.notifier)
+                    .createConversation(userId: widget.currentUserId, selectedUserId: user.id);
+
+                print("Conversation id $conversationId");
+
+                if (conversationId.isNotEmpty) {
+                  if (!context.mounted) return;
+                  Navigator.pop(context);
+                  Navigator.pushNamed(context, "/chat", arguments: conversationId);
+                }
+              },
               title: Text("${user.firstName} ${user.lastName}"),
               subtitle: Text("(${user.email})"),
             );

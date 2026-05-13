@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:realtime_chat_engine/core/theme/font_weights.dart';
 import 'package:realtime_chat_engine/features/auth/presentation/controller/auth_controller.dart';
+import 'package:realtime_chat_engine/features/home/domain/entities/conversation_entity.dart';
 import 'package:realtime_chat_engine/features/home/presentation/controller/home_controller.dart';
 import 'package:realtime_chat_engine/features/home/presentation/screens/available_users.dart';
 
@@ -73,32 +74,47 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               child: ListView.builder(
                 itemCount: state.conversations.length,
                 itemBuilder: (context, index) {
-                  final conversation = state.conversations[index];
-                  final messages = conversation.data.values.firstOrNull ?? [];
-                  final lastMessage = messages.lastOrNull;
+                  final ConversationEntity conversation = state.conversations[index];
+                  final messages = conversation.messages ?? [];
+                  final lastMessage = messages.isNotEmpty
+                      ? messages.reduce((a, b) => a.createdAt.isAfter(b.createdAt) ? a : b)
+                      : null;
+
+                  final otherParticipant = conversation.participants?.firstWhere(
+                    (p) => p.userId != state.user.id,
+                    orElse: () => conversation.participants!.first,
+                  );
+                  
+                  final displayName = otherParticipant?.userId ?? conversation.id;
 
                   if (lastMessage == null) {
-                    return const SizedBox.shrink();
+                    return ListTile(
+                      onTap: () => Navigator.pushNamed(context, '/chat', arguments: conversation.id),
+                      leading: const CircleAvatar(child: Icon(Icons.person)),
+                      title: Text(displayName),
+                      titleTextStyle: Theme.of(
+                        context,
+                      ).textTheme.titleMedium?.copyWith(fontWeight: AppFontWeight.semiBold),
+                      subtitle: const Text('No messages yet'),
+                      subtitleTextStyle: Theme.of(
+                        context,
+                      ).textTheme.bodyMedium?.copyWith(fontWeight: AppFontWeight.regular),
+                    );
                   }
 
                   final timeSent = lastMessage.createdAt;
-
-                  String time;
-
-                  if (timeSent.isBefore(DateTime.now().subtract(const Duration(days: 1)))) {
-                    time = DateFormat('MM/dd/yyyy').format(timeSent);
-                  } else {
-                    time = DateFormat('HH:mm').format(timeSent);
-                  }
+                  final time = timeSent.isBefore(DateTime.now().subtract(const Duration(days: 1)))
+                      ? DateFormat('MM/dd/yyyy').format(timeSent)
+                      : DateFormat('HH:mm').format(timeSent);
 
                   return ListTile(
                     onTap: () => Navigator.pushNamed(
                       context,
                       '/chat',
-                      arguments: lastMessage.conversationId,
+                      arguments: conversation.id,
                     ),
-                    leading: CircleAvatar(child: Icon(Icons.person)),
-                    title: Text(lastMessage.senderId),
+                    leading: const CircleAvatar(child: Icon(Icons.person)),
+                    title: Text(displayName),
                     titleTextStyle: Theme.of(
                       context,
                     ).textTheme.titleMedium?.copyWith(fontWeight: AppFontWeight.semiBold),
@@ -106,7 +122,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     subtitleTextStyle: Theme.of(
                       context,
                     ).textTheme.bodyMedium?.copyWith(fontWeight: AppFontWeight.regular),
-
                     trailing: Text(
                       time,
                       style: Theme.of(

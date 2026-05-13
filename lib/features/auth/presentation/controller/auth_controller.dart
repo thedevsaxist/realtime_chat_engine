@@ -36,10 +36,10 @@ class AuthController extends StateNotifier<AuthState> {
   final Ref ref;
 
   AuthController(this.ref) : super(UnAuthenticated()) {
-    _authRepository = ref.watch(authRepositoryProvider);
-    _chatRepository = ref.watch(chatRepositoryProvider);
-    _authLocalStorage = ref.watch(authLocalStorageProvider);
-    _authSecureStorage = ref.watch(authSecureStorageProvider);
+    _authRepository = ref.read(authRepositoryProvider);
+    _chatRepository = ref.read(chatRepositoryProvider);
+    _authLocalStorage = ref.read(authLocalStorageProvider);
+    _authSecureStorage = ref.read(authSecureStorageProvider);
 
     _init();
   }
@@ -105,6 +105,7 @@ class AuthController extends StateNotifier<AuthState> {
     }
   }
 
+  //TODO: this needs to be worked on so we're sure we're clearing eveything from cache
   Future<void> logOut() async {
     try {
       final currentState = state;

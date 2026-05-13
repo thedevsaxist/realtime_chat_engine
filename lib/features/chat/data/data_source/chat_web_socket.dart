@@ -3,11 +3,12 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:realtime_chat_engine/features/auth/data/data_source/auth_secure_storage.dart';
 import 'package:realtime_chat_engine/features/chat/data/models/create_message_req_model.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:web_socket_channel/status.dart' as status;
 
-final chatWebSocketProvider = Provider((ref) => ChatWebSocket());
+final chatWebSocketProvider = Provider((ref) => ChatWebSocket(ref.read(authSecureStorageProvider)));
 
 /// A dedicated web socket interface for managing real-time chat functionality.
 ///
@@ -15,6 +16,10 @@ final chatWebSocketProvider = Provider((ref) => ChatWebSocket());
 /// sending outgoing messages, receiving real-time incoming messages, and
 /// automatically attempting to reconnect if the connection drops.
 class ChatWebSocket {
+  final AuthSecureStorage _authSecureStorage;
+
+  ChatWebSocket(this._authSecureStorage);
+
   /// The active web socket channel.
   WebSocketChannel? _channel;
 
@@ -58,7 +63,13 @@ class ChatWebSocket {
   /// Internal method to establish the web socket channel connection.
   Future<void> _connect() async {
     try {
-      final uri = Uri(scheme: 'ws', host: 'localhost', port: 3000);
+      final token = await _authSecureStorage.getToken();
+      final uri = Uri(
+        scheme: 'ws',
+        host: 'localhost',
+        port: 3000,
+        queryParameters: {"token": token},
+      );
       // final uri = Uri.parse(Constants.chatWebSocketUrl);
       _channel = WebSocketChannel.connect(uri);
 
@@ -93,7 +104,11 @@ class ChatWebSocket {
 
     final messageJson = jsonEncode({
       "event": "send_message",
-      "data": {"conversationId": message.conversationId, "senderId": message.senderId, "content": message.content},
+      "data": {
+        "conversationId": message.conversationId,
+        "senderId": message.senderId,
+        "content": message.content,
+      },
     });
 
     _channel?.sink.add(messageJson);
@@ -103,6 +118,13 @@ class ChatWebSocket {
   Future<void> _onMessage(dynamic raw) async {
     try {
       final Map<String, dynamic> data = jsonDecode(raw);
+
+      // if there is a new conversation for this user, add the user to the conversation
+      if (data['event'] == 'new_conversation') {
+        _channel?.sink.add(
+          jsonEncode({"event": "join_conversation", "data": data["data"]["conversation"]['id']}),
+        );
+      }
 
       _streamController?.add(data);
     } catch (e) {
@@ -137,7 +159,9 @@ class ChatWebSocket {
 
     final delay = Duration(seconds: 2 << _reconnectAttempt);
     _reconnectAttempt++;
-    debugPrint("Reconnecting in ${delay.inSeconds}s (attempt $_reconnectAttempt/$_maxReconnectAttempts)");
+    debugPrint(
+      "Reconnecting in ${delay.inSeconds}s (attempt $_reconnectAttempt/$_maxReconnectAttempts)",
+    );
 
     await Future.delayed(delay, () {
       if (_shouldReconnect) _connect();

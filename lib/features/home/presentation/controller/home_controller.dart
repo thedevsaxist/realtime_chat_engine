@@ -1,13 +1,10 @@
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:realtime_chat_engine/features/auth/data/data_source/auth_local_storage.dart';
 import 'package:realtime_chat_engine/features/auth/domain/entities/user_entity.dart';
-import 'package:realtime_chat_engine/features/home/data/data_source/conversation_database.dart';
-import 'package:realtime_chat_engine/features/home/data/models/conversation_model.dart';
-import 'package:realtime_chat_engine/features/home/domain/entities/get_messages_res_entity.dart';
 import 'package:realtime_chat_engine/features/chat/data/repo/chat_repository_impl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:realtime_chat_engine/features/chat/domain/repositories/chat_repository.dart';
-// part 'home_controller.g.dart';
+import 'package:realtime_chat_engine/features/home/domain/entities/conversation_entity.dart';
 
 sealed class HomeControllerState {
   const HomeControllerState();
@@ -19,7 +16,7 @@ final class HomeControllerStateLoading extends HomeControllerState {
 
 final class HomeControllerStateSuccess extends HomeControllerState {
   final UserEntity user;
-  final List<GetMessagesResEntity> conversations;
+  final List<ConversationEntity> conversations;
   const HomeControllerStateSuccess(this.conversations, this.user);
 }
 
@@ -30,7 +27,7 @@ final class HomeControllerStateError extends HomeControllerState {
 }
 
 final homeControllerProvider =
-    StateNotifierProvider<HomeController, HomeControllerState>((ref) {
+    StateNotifierProvider.autoDispose<HomeController, HomeControllerState>((ref) {
       return HomeController(ref);
     });
 
@@ -38,12 +35,10 @@ class HomeController extends StateNotifier<HomeControllerState> {
   final Ref ref;
   ChatRepository? _chatRepository;
   AuthLocalStorage? _authLocalStorage;
-  ConversationDao? _conversationDao;
 
-  HomeController(this.ref) : super(HomeControllerStateLoading()) {
-    _chatRepository = ref.watch(chatRepositoryProvider);
-    _authLocalStorage = ref.watch(authLocalStorageProvider);
-    _conversationDao = ref.watch(conversationDaoProvider);
+  HomeController(this.ref) : super(const HomeControllerStateLoading()) {
+    _chatRepository = ref.read(chatRepositoryProvider);
+    _authLocalStorage = ref.read(authLocalStorageProvider);
 
     _init();
   }
@@ -51,34 +46,21 @@ class HomeController extends StateNotifier<HomeControllerState> {
   void _init() async {
     final user = await _authLocalStorage?.getUser();
 
-    List<GetMessagesResEntity> conversations = [];
-
     if (user == null) {
-      state = HomeControllerStateError("User not found", "User not found");
-      return;
-    }
-
-    final data = await _conversationDao?.getUserConversations(
-      user.id,
-    );
-
-    if (data == null) {
-      state = HomeControllerStateError(
-        "No conversation ids found for this user",
-        "No conversation ids found for this user",
-      );
+      state = const HomeControllerStateError("User not found", "User not found");
       return;
     }
 
     try {
-      for (ConversationModel conversation in data) {
-        final res = await _chatRepository?.getMessages(conversation.id);
-        conversations.add(res!);
-      }
+      final res = await _chatRepository?.getConversations(user.id);
 
-      state = HomeControllerStateSuccess(conversations, UserEntity.fromModel(user));
-    } catch (e) {
-      state = HomeControllerStateError(e.toString(), e.toString());
+      state = HomeControllerStateSuccess(
+        res?.conversations ?? [],
+        UserEntity.fromModel(user),
+      );
+    } catch (e, st) {
+      state = HomeControllerStateError(e.toString(), st.toString());
     }
   }
 }
+
