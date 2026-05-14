@@ -12,6 +12,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
 
+
   runApp(const ProviderScope(child: MyApp()));
 }
 
@@ -21,7 +22,7 @@ class MyApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authControllerProvider);
-    
+
     return MaterialApp(
       title: 'Realtime Chat Engine',
       theme: AppTheme.light,
@@ -32,7 +33,9 @@ class MyApp extends ConsumerWidget {
       onGenerateRoute: (settings) {
         if (settings.name == "/chat") {
           final conversationId = settings.arguments as String;
-          return MaterialPageRoute(builder: (context) => ChatScreen(conversationId: conversationId));
+          return MaterialPageRoute(
+            builder: (context) => ChatScreen(conversationId: conversationId),
+          );
         }
         return null;
       },

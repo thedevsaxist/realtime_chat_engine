@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:realtime_chat_engine/core/config/network/dio_service.dart';
 
@@ -15,6 +16,9 @@ class HomeClient {
     try {
       final response = await _dioService.dio.get("/users", data: req.toJson());
       return SearchAvailableUsersResModel.fromJson(response.data);
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404) return SearchAvailableUsersResModel(users: []);
+      throw Exception("[HomeClient.searchAvailableUsers] -> ${e.toString()}");
     } catch (e, st) {
       throw Exception("[HomeClient.searchAvailableUsers] -> ${e.toString()} \n $st");
     }

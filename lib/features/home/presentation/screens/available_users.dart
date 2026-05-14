@@ -5,7 +5,8 @@ import '../controller/available_users_controller.dart';
 
 class AvailableUsers extends ConsumerStatefulWidget {
   final String currentUserId;
-  const AvailableUsers({super.key, required this.currentUserId});
+  final BuildContext parentContext;
+  const AvailableUsers({super.key, required this.currentUserId, required this.parentContext});
 
   @override
   ConsumerState<AvailableUsers> createState() => _AvailableUsersState();
@@ -59,9 +60,13 @@ class _AvailableUsersState extends ConsumerState<AvailableUsers> {
                     .createConversation(userId: widget.currentUserId, selectedUserId: user.id);
 
                 if (conversationId.isNotEmpty) {
+                  // push to the new screen before popping off the modal sheet
+
+                  if (!context.mounted) return;
+                  Navigator.of(widget.parentContext).pushNamed("/chat", arguments: conversationId);
+
                   if (!context.mounted) return;
                   Navigator.pop(context);
-                  Navigator.pushNamed(context, "/chat", arguments: conversationId);
                 }
               },
               title: Text("${user.firstName} ${user.lastName}"),

@@ -6,12 +6,12 @@ import 'package:realtime_chat_engine/features/chat/domain/entities/create_conver
 import 'package:realtime_chat_engine/features/chat/domain/entities/create_conversation_res_entity.dart';
 import 'package:realtime_chat_engine/features/chat/domain/entities/delete_messages_req_entity.dart';
 import 'package:realtime_chat_engine/features/home/data/data_source/conversation_database.dart';
+import 'package:realtime_chat_engine/features/home/domain/entities/conversation_entity.dart';
 import 'package:realtime_chat_engine/features/home/domain/entities/get_conversations_res_entity.dart';
 import 'package:realtime_chat_engine/features/home/domain/entities/get_messages_res_entity.dart';
 import 'package:realtime_chat_engine/features/chat/domain/repositories/chat_repository.dart';
 import 'package:riverpod/riverpod.dart';
 
-import '../../domain/entities/create_message_req_entity.dart';
 import '../../../home/domain/entities/message_entity.dart';
 
 class ChatRepositoryImpl implements ChatRepository {
@@ -52,21 +52,33 @@ class ChatRepositoryImpl implements ChatRepository {
   }
 
   @override
-  Future<void> createMessage(MessageEntity message) async {
+  Future<void> cacheMessage(MessageEntity message) async {
     try {
-      chatRoom.addMessage(message);
-
-      final req = CreateMessageReqEntity(
-        content: message.content,
-        conversationId: message.conversationId,
-        senderId: message.senderId,
-      ).toModel();
-
-      chatWebSocket.sendMessage(req);
+      await chatRoom.addMessage(message);
+      await _conversationDao.updateLastMessage(
+        message.conversationId,
+        message.content,
+        message.createdAt.millisecondsSinceEpoch,
+      );
     } catch (e) {
       throw Exception(e);
     }
   }
+
+  // @override
+  // Future<void> createMessage(MessageEntity message) async {
+  //   try {
+  //     final req = CreateMessageReqEntity(
+  //       content: message.content,
+  //       conversationId: message.conversationId,
+  //       senderId: message.senderId,
+  //     ).toModel();
+
+  //     chatWebSocket.sendMessage(req);
+  //   } catch (e) {
+  //     throw Exception(e);
+  //   }
+  // }
 
   @override
   Future<void> deleteMessages(DeleteMessagesReqEntity req) async {
@@ -108,7 +120,34 @@ class ChatRepositoryImpl implements ChatRepository {
   Future<GetConversationsResEntity> getConversations(String userId) async {
     try {
       final response = await chatClient.getConversations(userId);
-      return GetConversationsResEntity.fromModel(response);
+      final entity = GetConversationsResEntity.fromModel(response);
+
+      final updatedConversations = await Future.wait(
+        entity.conversations.map((conv) async {
+          final localMessages = await chatRoom.getMessages(conv.id);
+          if (localMessages.isEmpty) return conv;
+
+          final apiLatest = conv.messages?.isNotEmpty == true
+              ? conv.messages!.reduce((a, b) => a.createdAt.isAfter(b.createdAt) ? a : b).createdAt
+              : DateTime.fromMillisecondsSinceEpoch(0);
+
+          final localLatest = localMessages
+              .reduce((a, b) => a.createdAt.isAfter(b.createdAt) ? a : b)
+              .createdAt;
+
+          if (localLatest.isAfter(apiLatest)) {
+            return ConversationEntity(
+              id: conv.id,
+              createdAt: conv.createdAt,
+              participants: conv.participants,
+              messages: localMessages,
+            );
+          }
+          return conv;
+        }),
+      );
+
+      return GetConversationsResEntity(status: entity.status, conversations: updatedConversations);
     } catch (e) {
       throw Exception(e);
     }

@@ -35,6 +35,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     if (state is HomeControllerStateError) {
       if (kDebugMode) {
+        debugPrint(state.error);
+        debugPrint(state.stackTrace);
+
         return Scaffold(
           body: Padding(
             padding: const EdgeInsets.all(16.0),
@@ -84,12 +87,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     (p) => p.userId != state.user.id,
                     orElse: () => conversation.participants!.first,
                   );
-                  
+
                   final displayName = otherParticipant?.userId ?? conversation.id;
 
                   if (lastMessage == null) {
                     return ListTile(
-                      onTap: () => Navigator.pushNamed(context, '/chat', arguments: conversation.id),
+                      onTap: () =>
+                          Navigator.pushNamed(context, '/chat', arguments: conversation.id),
                       leading: const CircleAvatar(child: Icon(Icons.person)),
                       title: Text(displayName),
                       titleTextStyle: Theme.of(
@@ -108,11 +112,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       : DateFormat('HH:mm').format(timeSent);
 
                   return ListTile(
-                    onTap: () => Navigator.pushNamed(
-                      context,
-                      '/chat',
-                      arguments: conversation.id,
-                    ),
+                    onTap: () => Navigator.pushNamed(context, '/chat', arguments: conversation.id),
                     leading: const CircleAvatar(child: Icon(Icons.person)),
                     title: Text(displayName),
                     titleTextStyle: Theme.of(
@@ -155,10 +155,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
         floatingActionButton: FloatingActionButton(
           onPressed: () {
+            final parentContext = context;
             showCupertinoSheet(
               context: context,
               builder: (context) {
-                return AvailableUsers(currentUserId: state.user.id);
+                return AvailableUsers(currentUserId: state.user.id, parentContext: parentContext);
               },
             );
           },

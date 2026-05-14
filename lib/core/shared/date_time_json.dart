@@ -5,6 +5,10 @@ DateTime dateTimeFromJson(dynamic value) {
   if (value is double) {
     return DateTime.fromMillisecondsSinceEpoch(value.toInt());
   }
-  if (value is String) return DateTime.parse(value);
+  if (value is String) {
+    final ms = int.tryParse(value);
+    if (ms != null) return DateTime.fromMillisecondsSinceEpoch(ms);
+    return DateTime.parse(value);
+  }
   throw FormatException('Cannot parse DateTime from: $value (${value.runtimeType})');
 }

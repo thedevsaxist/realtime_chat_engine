@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/legacy.dart';
 import 'package:realtime_chat_engine/features/auth/data/data_source/auth_local_storage.dart';
 import 'package:realtime_chat_engine/features/auth/data/data_source/auth_secure_storage.dart';
 import 'package:realtime_chat_engine/features/auth/domain/entities/register_req_entity.dart';
+import 'package:realtime_chat_engine/features/chat/data/data_source/chat_web_socket.dart';
 import 'package:realtime_chat_engine/features/chat/data/repo/chat_repository_impl.dart';
 
 import '../../../chat/domain/repositories/chat_repository.dart';
@@ -33,6 +34,7 @@ class AuthController extends StateNotifier<AuthState> {
   ChatRepository? _chatRepository;
   AuthLocalStorage? _authLocalStorage;
   AuthSecureStorage? _authSecureStorage;
+  ChatWebSocket? _chatWebSocket;
   final Ref ref;
 
   AuthController(this.ref) : super(UnAuthenticated()) {
@@ -40,6 +42,7 @@ class AuthController extends StateNotifier<AuthState> {
     _chatRepository = ref.read(chatRepositoryProvider);
     _authLocalStorage = ref.read(authLocalStorageProvider);
     _authSecureStorage = ref.read(authSecureStorageProvider);
+    _chatWebSocket = ref.read(chatWebSocketProvider);
 
     _init();
   }
@@ -50,6 +53,7 @@ class AuthController extends StateNotifier<AuthState> {
 
     if (token != null && user != null) {
       state = Authenticated(userId: user.id, token: token);
+      _chatWebSocket?.connect();
     }
   }
 
@@ -83,6 +87,7 @@ class AuthController extends StateNotifier<AuthState> {
   Future<void> _onAuthSuccess(String userId, String token) async {
     try {
       state = Authenticated(userId: userId, token: token);
+      _chatWebSocket?.connect();
     } catch (e) {
       debugPrint("Couldn't set success state $e");
     }
@@ -105,16 +110,16 @@ class AuthController extends StateNotifier<AuthState> {
     }
   }
 
-  //TODO: this needs to be worked on so we're sure we're clearing eveything from cache
   Future<void> logOut() async {
     try {
+      await _chatWebSocket?.disconnect();
       final currentState = state;
       if (currentState is Authenticated) {
         await _authSecureStorage?.deleteTokens();
         await _authLocalStorage?.deleteUser(currentState.userId);
       }
       _chatRepository?.clearCache();
-      ref.invalidateSelf();
+      state = UnAuthenticated();
     } catch (e) {
       debugPrint("Couldn't clear cache $e");
     }

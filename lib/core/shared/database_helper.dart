@@ -27,10 +27,16 @@ class DatabaseHelper {
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     if (oldVersion < 2) {
-      await db.execute('ALTER TABLE users ADD COLUMN email TEXT');
-      await db.execute('ALTER TABLE users ADD COLUMN firstName TEXT');
-      await db.execute('ALTER TABLE users ADD COLUMN lastName TEXT');
-      await db.execute('ALTER TABLE users ADD COLUMN createdAt INTEGER');
+      await db.execute('DROP TABLE IF EXISTS users');
+      await db.execute('''
+        CREATE TABLE users (
+          id TEXT PRIMARY KEY,
+          email TEXT,
+          firstName TEXT,
+          lastName TEXT,
+          createdAt INTEGER
+        )
+      ''');
     }
   }
 

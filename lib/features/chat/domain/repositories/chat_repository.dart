@@ -7,7 +7,8 @@ import 'package:realtime_chat_engine/features/home/domain/entities/message_entit
 
 abstract class ChatRepository {
   Future<GetMessagesResEntity> getMessages(String conversationId);
-  Future<void> createMessage(MessageEntity message);
+  // Future<void> createMessage(MessageEntity message);
+  Future<void> cacheMessage(MessageEntity message);
   Future<void> deleteMessages(DeleteMessagesReqEntity req);
   Future<void> clearCache();
 

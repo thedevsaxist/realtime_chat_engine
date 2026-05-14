@@ -50,7 +50,7 @@ class AvailableUsersController extends StateNotifier<AvailableUsersState> {
     try {
       final response = await _homeRepo?.searchAvailableUsers(request);
 
-      if (response == null) {
+      if (response == null || response.users.isEmpty) {
         state = NoAvailableUsers();
       }
 
