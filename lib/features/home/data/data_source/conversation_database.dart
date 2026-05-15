@@ -71,4 +71,11 @@ class ConversationDao {
       whereArgs: [conversationId],
     );
   }
+
+  Future<void> clearAll() async {
+    final db = await _helper.database;
+    await db.delete('messages');
+    await db.delete('conversations');
+    await db.delete('user_conversations');
+  }
 }

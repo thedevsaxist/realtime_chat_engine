@@ -1,20 +1,27 @@
 import 'package:realtime_chat_engine/features/home/data/models/participant_model.dart';
 
 class ParticipantEntity {
-  final String id;
   final String userId;
-  final String conversationId;
+  final String firstName;
+  final String lastName;
 
-  ParticipantEntity({required this.id, required this.userId, required this.conversationId});
+  ParticipantEntity({
+    required this.userId,
+    required this.firstName,
+    required this.lastName,
+  });
 
   factory ParticipantEntity.fromModel(ParticipantModel model) {
     return ParticipantEntity(
-      id: model.id,
       userId: model.userId,
-      conversationId: model.conversationId,
+      firstName: model.firstName,
+      lastName: model.lastName,
     );
   }
 
-  ParticipantModel toModel() =>
-      ParticipantModel(id: id, userId: userId, conversationId: conversationId);
+  ParticipantModel toModel() => ParticipantModel(
+    userId: userId,
+    firstName: firstName,
+    lastName: lastName,
+  );
 }

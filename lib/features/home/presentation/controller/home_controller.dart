@@ -58,7 +58,7 @@ class HomeController extends StateNotifier<HomeControllerState> {
     }
 
     try {
-      final res = await _chatRepository?.getConversations(user.id);
+      final res = await _chatRepository?.getConversations();
 
       state = HomeControllerStateSuccess(res?.conversations ?? [], UserEntity.fromModel(user));
     } catch (e, st) {

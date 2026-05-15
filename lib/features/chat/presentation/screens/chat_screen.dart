@@ -9,7 +9,8 @@ import 'package:realtime_chat_engine/features/chat/presentation/controller/chat_
 
 class ChatScreen extends ConsumerStatefulWidget {
   final String conversationId;
-  const ChatScreen({super.key, required this.conversationId});
+  final String receiverName;
+  const ChatScreen({super.key, required this.conversationId, required this.receiverName});
 
   @override
   ConsumerState<ChatScreen> createState() => _ChatScreenState();
@@ -44,7 +45,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     return GestureDetector(
       onTap: FocusScope.of(context).unfocus,
       child: Scaffold(
-        appBar: AppBar(),
+        appBar: AppBar(title: Text(widget.receiverName)),
         body: Padding(
           padding: const EdgeInsets.all(20.0),
           child: Column(

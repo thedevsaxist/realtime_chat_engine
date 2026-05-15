@@ -6,6 +6,7 @@ class AuthInterceptor extends Interceptor {
   final AuthSecureStorage _authSecureStorage;
   final Dio _dio;
   final Dio _refreshDio;
+  VoidCallback? onLogout;
 
   AuthInterceptor(this._authSecureStorage, this._dio, this._refreshDio);
 
@@ -42,7 +43,7 @@ class AuthInterceptor extends Interceptor {
         "/auth/refresh",
         data: {"refreshToken": refreshToken},
       );
-      
+
       debugPrint('[AuthInterceptor] refresh response: ${response.data}');
 
       final newToken = response.data["token"] as String;
@@ -55,7 +56,8 @@ class AuthInterceptor extends Interceptor {
       handler.resolve(retryResponse);
     } catch (e) {
       debugPrint('[AuthInterceptor] refresh failed: $e');
-      await _authSecureStorage.deleteTokens();
+      // await _authSecureStorage.deleteTokens();
+      onLogout?.call();
       handler.next(err);
     }
   }

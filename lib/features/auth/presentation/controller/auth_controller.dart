@@ -1,16 +1,18 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
-import 'package:realtime_chat_engine/features/auth/data/data_source/auth_local_storage.dart';
-import 'package:realtime_chat_engine/features/auth/data/data_source/auth_secure_storage.dart';
-import 'package:realtime_chat_engine/features/auth/domain/entities/register_req_entity.dart';
-import 'package:realtime_chat_engine/features/chat/data/data_source/chat_web_socket.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:realtime_chat_engine/core/config/network/dio_service.dart';
 import 'package:realtime_chat_engine/features/chat/data/repo/chat_repository_impl.dart';
+import 'package:realtime_chat_engine/features/chat/data/data_source/chat_web_socket.dart';
+import 'package:realtime_chat_engine/features/auth/domain/entities/login_req_entity.dart';
+import 'package:realtime_chat_engine/features/auth/domain/repository/auth_repository.dart';
+import 'package:realtime_chat_engine/features/auth/data/data_source/auth_local_storage.dart';
+import 'package:realtime_chat_engine/features/auth/domain/entities/register_req_entity.dart';
+import 'package:realtime_chat_engine/features/chat/domain/repositories/chat_repository.dart';
+import 'package:realtime_chat_engine/features/auth/data/data_source/auth_secure_storage.dart';
+import 'package:realtime_chat_engine/core/config/network/interceptors/auth_interceptors.dart';
+import 'package:realtime_chat_engine/features/auth/data/repository/auth_repository_impl.dart';
 
-import '../../../chat/domain/repositories/chat_repository.dart';
-import '../../data/repository/auth_repository_impl.dart';
-import '../../domain/entities/login_req_entity.dart';
-import '../../domain/repository/auth_repository.dart';
 
 final authControllerProvider = StateNotifierProvider<AuthController, AuthState>(
   (ref) {
@@ -48,6 +50,10 @@ class AuthController extends StateNotifier<AuthState> {
   }
 
   Future<void> _init() async {
+    final dioService = ref.read(dioServiceProvider);
+    final interceptor = dioService.dio.interceptors.whereType<AuthInterceptor>().firstOrNull;
+    interceptor?.onLogout = logOut;
+
     final token = await _authSecureStorage?.getToken();
     final user = await _authLocalStorage?.getUser();
 
@@ -113,12 +119,9 @@ class AuthController extends StateNotifier<AuthState> {
   Future<void> logOut() async {
     try {
       await _chatWebSocket?.disconnect();
-      final currentState = state;
-      if (currentState is Authenticated) {
-        await _authSecureStorage?.deleteTokens();
-        await _authLocalStorage?.deleteUser(currentState.userId);
-      }
-      _chatRepository?.clearCache();
+      await _authSecureStorage?.deleteTokens();
+      await _authLocalStorage?.deleteUser();
+      await _chatRepository?.clearCache();
       state = UnAuthenticated();
     } catch (e) {
       debugPrint("Couldn't clear cache $e");

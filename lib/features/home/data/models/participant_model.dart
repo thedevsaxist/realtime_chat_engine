@@ -1,17 +1,25 @@
 class ParticipantModel {
-  final String id;
   final String userId;
-  final String conversationId;
+  final String firstName;
+  final String lastName;
 
-  ParticipantModel({required this.id, required this.userId, required this.conversationId});
+  ParticipantModel({
+    required this.userId,
+    required this.firstName,
+    required this.lastName,
+  });
 
   factory ParticipantModel.fromJson(Map<String, dynamic> json) {
     return ParticipantModel(
-      id: json['id'] as String,
       userId: json['userId'] as String,
-      conversationId: json['conversationId'] as String,
+      firstName: json['firstName'] as String,
+      lastName: json['lastName'] as String,
     );
   }
 
-  Map<String, dynamic> toJson() => {'id': id, 'userId': userId, 'conversationId': conversationId};
+  Map<String, dynamic> toJson() => {
+    'userId': userId,
+    'firstName': firstName,
+    'lastName': lastName,
+  };
 }

@@ -63,7 +63,13 @@ class _AvailableUsersState extends ConsumerState<AvailableUsers> {
                   // push to the new screen before popping off the modal sheet
 
                   if (!context.mounted) return;
-                  Navigator.of(widget.parentContext).pushNamed("/chat", arguments: conversationId);
+                  Navigator.of(widget.parentContext).pushNamed(
+                    "/chat",
+                    arguments: {
+                      'conversationId': conversationId,
+                      'receiverName': '${user.firstName} ${user.lastName}',
+                    },
+                  );
 
                   if (!context.mounted) return;
                   Navigator.pop(context);

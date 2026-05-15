@@ -58,5 +58,6 @@ class AuthSecureStorage {
   Future<void> deleteTokens() async {
     final db = await database;
     await db.delete("auth");
+    _database = null;
   }
 }

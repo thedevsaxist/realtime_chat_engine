@@ -32,9 +32,12 @@ class MyApp extends ConsumerWidget {
       },
       onGenerateRoute: (settings) {
         if (settings.name == "/chat") {
-          final conversationId = settings.arguments as String;
+          final args = settings.arguments as Map<String, String>;
           return MaterialPageRoute(
-            builder: (context) => ChatScreen(conversationId: conversationId),
+            builder: (context) => ChatScreen(
+              conversationId: args['conversationId']!,
+              receiverName: args['receiverName']!,
+            ),
           );
         }
         return null;

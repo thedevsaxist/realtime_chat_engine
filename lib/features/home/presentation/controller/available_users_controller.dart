@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:realtime_chat_engine/features/auth/domain/entities/user_entity.dart';
-import 'package:realtime_chat_engine/features/chat/data/repo/chat_repository_impl.dart';
-import 'package:realtime_chat_engine/features/chat/domain/entities/create_conversation_req_entity.dart';
-import 'package:realtime_chat_engine/features/chat/domain/repositories/chat_repository.dart';
-import 'package:realtime_chat_engine/features/home/data/repos/home_repository_impl.dart';
-import 'package:realtime_chat_engine/features/home/domain/entities/search_available_users_req_entity.dart';
 import 'package:realtime_chat_engine/features/home/domain/repositories/home_repo.dart';
+import 'package:realtime_chat_engine/features/chat/data/repo/chat_repository_impl.dart';
+import 'package:realtime_chat_engine/features/home/data/repos/home_repository_impl.dart';
+import 'package:realtime_chat_engine/features/chat/domain/repositories/chat_repository.dart';
+import 'package:realtime_chat_engine/features/chat/domain/entities/create_conversation_req_entity.dart';
 
 final availableUsersController =
     StateNotifierProvider<AvailableUsersController, AvailableUsersState>((ref) {
@@ -45,10 +44,9 @@ class AvailableUsersController extends StateNotifier<AvailableUsersState> {
 
   Future<void> search(String userId) async {
     state = LoadingState();
-    final request = SearchAvailableUsersReqEntity(userId: userId);
 
     try {
-      final response = await _homeRepo?.searchAvailableUsers(request);
+      final response = await _homeRepo?.searchAvailableUsers();
 
       if (response == null || response.users.isEmpty) {
         state = NoAvailableUsers();
@@ -67,14 +65,12 @@ class AvailableUsersController extends StateNotifier<AvailableUsersState> {
     state = LoadingState();
 
     try {
-      final response = await _chatRepository?.createConversation(
-        req: CreateConversationReqEntity(participantIds: [userId, selectedUserId]),
-        userId: userId,
-      );
+      final entity = CreateConversationReqEntity(participantIds: [userId, selectedUserId]);
+      final response = await _chatRepository?.createConversation(entity);
 
       if (response != null) {
         state = UsersAvailable([]);
-        return response.conversation.id;
+        return response.id;
       } else {
         state = ErrorState("Something went wrong", StackTrace.empty);
         debugPrint(response.toString());

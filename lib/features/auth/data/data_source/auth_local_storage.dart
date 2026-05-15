@@ -14,6 +14,7 @@ class AuthLocalStorage {
 
   Future<void> saveUser(UserModel user) async {
     final db = await _helper.database;
+    await db.delete('users');
     await db.insert(
       'users',
       user.toJson(),
@@ -36,15 +37,16 @@ class AuthLocalStorage {
         return null;
       }
 
-      debugPrint(row.toString());
+      debugPrint("[AuthLocalStorage -> getUser()] ${row.toString()}");
       return UserModel.fromJson(row);
     } catch (e, st) {
       throw Exception("[AuthLocalStorage.getUser] -> ${e.toString()} \n $st");
     }
   }
 
-  Future<void> deleteUser(String userId) async {
+  Future<void> deleteUser() async {
     final db = await _helper.database;
-    await db.delete('users', where: 'id = ?', whereArgs: [userId]);
+    await db.delete('users');
+    _helper.resetDatabase();
   }
 }

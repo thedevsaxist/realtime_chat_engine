@@ -7,7 +7,7 @@ class SearchAvailableUsersResModel {
 
   factory SearchAvailableUsersResModel.fromJson(Map<String, dynamic> json) {
     return SearchAvailableUsersResModel(
-      users: (json["users"] as List<dynamic>)
+      users: (json['users'] as List<dynamic>)
           .map((user) => UserModel.fromJson(Map<String, dynamic>.from(user as Map)))
           .toList(),
     );

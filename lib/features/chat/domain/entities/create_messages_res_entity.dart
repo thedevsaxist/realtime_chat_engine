@@ -2,20 +2,15 @@ import 'package:realtime_chat_engine/features/chat/data/models/create_message_re
 import 'package:realtime_chat_engine/features/home/domain/entities/message_entity.dart';
 
 class CreateMessageResEntity {
-  final String status;
-  final MessageEntity data;
+  final MessageEntity message;
 
-  const CreateMessageResEntity({required this.status, required this.data});
+  const CreateMessageResEntity({required this.message});
 
   factory CreateMessageResEntity.fromModel(CreateMessageResModel model) {
     return CreateMessageResEntity(
-      status: model.status,
-      data:  MessageEntity.fromModel(model.data),
+      message: MessageEntity.fromModel(model.message),
     );
   }
 
-  CreateMessageResModel toModel() => CreateMessageResModel(
-    data: data.toModel(),
-    status: status,
-  );
+  CreateMessageResModel toModel() => CreateMessageResModel(message: message.toModel());
 }

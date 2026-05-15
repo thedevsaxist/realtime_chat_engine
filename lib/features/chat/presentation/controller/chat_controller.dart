@@ -73,8 +73,7 @@ class ChatController extends StateNotifier<ChatData> {
     _chatRepository
         ?.getMessages(conversationId)
         .then((value) {
-          final messages = value.data["messages"]!;
-          state = state.copyWith(messages: messages, user: user);
+          state = state.copyWith(messages: value.messages, user: user);
           debugPrint(state.messages.length.toString());
         })
         .onError((error, stackTrace) {

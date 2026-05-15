@@ -1,7 +1,6 @@
 import 'package:realtime_chat_engine/core/shared/date_time_json.dart';
 import 'package:realtime_chat_engine/features/home/data/models/message_model.dart';
-
-import 'participant_model.dart';
+import 'package:realtime_chat_engine/features/home/data/models/participant_model.dart';
 
 class ConversationModel {
   final String id;

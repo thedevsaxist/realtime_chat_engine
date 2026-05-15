@@ -7,6 +7,10 @@ final databaseHelperProvider = Provider((ref) => DatabaseHelper());
 class DatabaseHelper {
   static Database? _database;
 
+  void resetDatabase() {
+    _database = null;
+  }
+
   Future<Database> get database async {
     if (_database != null) return _database!;
     _database = await _initDB();

@@ -88,12 +88,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     orElse: () => conversation.participants!.first,
                   );
 
-                  final displayName = otherParticipant?.userId ?? conversation.id;
+                  final displayName = "${otherParticipant?.firstName} ${otherParticipant?.lastName}" ;
 
                   if (lastMessage == null) {
                     return ListTile(
                       onTap: () =>
-                          Navigator.pushNamed(context, '/chat', arguments: conversation.id),
+                          Navigator.pushNamed(context, '/chat', arguments: {
+                            'conversationId': conversation.id,
+                            'receiverName': displayName,
+                          }),
                       leading: const CircleAvatar(child: Icon(Icons.person)),
                       title: Text(displayName),
                       titleTextStyle: Theme.of(
@@ -112,7 +115,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       : DateFormat('HH:mm').format(timeSent);
 
                   return ListTile(
-                    onTap: () => Navigator.pushNamed(context, '/chat', arguments: conversation.id),
+                    onTap: () => Navigator.pushNamed(context, '/chat', arguments: {
+                      'conversationId': conversation.id,
+                      'receiverName': displayName,
+                    }),
                     leading: const CircleAvatar(child: Icon(Icons.person)),
                     title: Text(displayName),
                     titleTextStyle: Theme.of(
