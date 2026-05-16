@@ -13,12 +13,9 @@ import 'package:realtime_chat_engine/features/auth/data/data_source/auth_secure_
 import 'package:realtime_chat_engine/core/config/network/interceptors/auth_interceptors.dart';
 import 'package:realtime_chat_engine/features/auth/data/repository/auth_repository_impl.dart';
 
-
-final authControllerProvider = StateNotifierProvider<AuthController, AuthState>(
-  (ref) {
-    return AuthController(ref);
-  },
-);
+final authControllerProvider = StateNotifierProvider<AuthController, AuthState>((ref) {
+  return AuthController(ref);
+});
 
 sealed class AuthState {}
 
@@ -31,20 +28,26 @@ class Authenticated extends AuthState {
 
 class UnAuthenticated extends AuthState {}
 
+class AuthError extends AuthState {
+  final String message;
+  AuthError(this.message);
+}
+
 class AuthController extends StateNotifier<AuthState> {
-  AuthRepository? _authRepository;
-  ChatRepository? _chatRepository;
-  AuthLocalStorage? _authLocalStorage;
-  AuthSecureStorage? _authSecureStorage;
-  ChatWebSocket? _chatWebSocket;
   final Ref ref;
 
+  late final ChatWebSocket _chatWebSocket;
+  late final AuthRepository _authRepository;
+  late final ChatRepository _chatRepository;
+  late final AuthLocalStorage _authLocalStorage;
+  late final AuthSecureStorage _authSecureStorage;
+
   AuthController(this.ref) : super(UnAuthenticated()) {
+    _chatWebSocket = ref.read(chatWebSocketProvider);
     _authRepository = ref.read(authRepositoryProvider);
     _chatRepository = ref.read(chatRepositoryProvider);
     _authLocalStorage = ref.read(authLocalStorageProvider);
     _authSecureStorage = ref.read(authSecureStorageProvider);
-    _chatWebSocket = ref.read(chatWebSocketProvider);
 
     _init();
   }
@@ -54,12 +57,12 @@ class AuthController extends StateNotifier<AuthState> {
     final interceptor = dioService.dio.interceptors.whereType<AuthInterceptor>().firstOrNull;
     interceptor?.onLogout = logOut;
 
-    final token = await _authSecureStorage?.getToken();
-    final user = await _authLocalStorage?.getUser();
+    final token = await _authSecureStorage.getToken();
+    final user = await _authLocalStorage.getUser();
 
     if (token != null && user != null) {
       state = Authenticated(userId: user.id, token: token);
-      _chatWebSocket?.connect();
+      _chatWebSocket.connect();
     }
   }
 
@@ -70,21 +73,25 @@ class AuthController extends StateNotifier<AuthState> {
     required String lastName,
   }) async {
     try {
-      final result = await _authRepository?.register(
-        RegisterReqEntity(
-          email: email,
-          password: password,
-          firstName: firstName,
-          lastName: lastName,
-        ),
+      final entity = RegisterReqEntity(
+        email: email,
+        password: password,
+        firstName: firstName,
+        lastName: lastName,
       );
 
-      if (result == null) {
-        state = UnAuthenticated();
-        return;
-      }
+      final result = await _authRepository.register(entity);
 
-      await _onAuthSuccess(result.user.id, result.token);
+      result.when(
+        (response) async {
+          if (response.token.isEmpty) {
+            state = UnAuthenticated();
+            return;
+          }
+          await _onAuthSuccess(response.user.id, response.token);
+        },
+        (error) => state = AuthError(error.message),
+      );
     } catch (e) {
       debugPrint("Couldn't register user $e");
     }
@@ -93,7 +100,7 @@ class AuthController extends StateNotifier<AuthState> {
   Future<void> _onAuthSuccess(String userId, String token) async {
     try {
       state = Authenticated(userId: userId, token: token);
-      _chatWebSocket?.connect();
+      _chatWebSocket.connect();
     } catch (e) {
       debugPrint("Couldn't set success state $e");
     }
@@ -101,11 +108,9 @@ class AuthController extends StateNotifier<AuthState> {
 
   Future<void> login(String email, String password) async {
     try {
-      final result = await _authRepository?.login(
-        LoginReqEntity(email: email, password: password),
-      );
+      final result = await _authRepository.login(LoginReqEntity(email: email, password: password));
 
-      if (result == null) {
+      if (result.token.isEmpty) {
         state = UnAuthenticated();
         return;
       }
@@ -118,10 +123,13 @@ class AuthController extends StateNotifier<AuthState> {
 
   Future<void> logOut() async {
     try {
-      await _chatWebSocket?.disconnect();
-      await _authSecureStorage?.deleteTokens();
-      await _authLocalStorage?.deleteUser();
-      await _chatRepository?.clearCache();
+      await Future.wait([
+        _chatWebSocket.disconnect(),
+        _authSecureStorage.deleteTokens(),
+        _authLocalStorage.deleteUser(),
+        _chatRepository.clearCache(),
+      ]);
+
       state = UnAuthenticated();
     } catch (e) {
       debugPrint("Couldn't clear cache $e");

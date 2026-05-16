@@ -6,7 +6,7 @@ import 'package:realtime_chat_engine/features/home/domain/entities/get_messages_
 import 'package:realtime_chat_engine/features/home/domain/entities/message_entity.dart';
 
 abstract class ChatRepository {
-  Future<GetConversationsResEntity> getConversations();
+  Future<GetConversationsResEntity> getConversations(String userId);
   Future<GetMessagesResEntity> getMessages(String conversationId);
   Future<ConversationEntity> createConversation(CreateConversationReqEntity req);
 

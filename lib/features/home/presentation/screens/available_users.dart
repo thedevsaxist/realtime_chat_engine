@@ -5,8 +5,13 @@ import '../controller/available_users_controller.dart';
 
 class AvailableUsers extends ConsumerStatefulWidget {
   final String currentUserId;
-  final BuildContext parentContext;
-  const AvailableUsers({super.key, required this.currentUserId, required this.parentContext});
+  final void Function(String conversationId, String receiverName) onConversationCreated;
+
+  const AvailableUsers({
+    super.key,
+    required this.currentUserId,
+    required this.onConversationCreated,
+  });
 
   @override
   ConsumerState<AvailableUsers> createState() => _AvailableUsersState();
@@ -30,9 +35,9 @@ class _AvailableUsersState extends ConsumerState<AvailableUsers> {
       return Center(child: Text("No users found"));
     }
 
-    if (state is ErrorState) {
-      debugPrint("Something went wrong ${state.message}");
-    }
+    // if (state is ErrorState) {
+    //   debugPrint("Something went wrong ${state.m}");
+    // }
 
     if (state is LoadingState) {
       return Center(child: CircularProgressIndicator());
@@ -60,19 +65,16 @@ class _AvailableUsersState extends ConsumerState<AvailableUsers> {
                     .createConversation(userId: widget.currentUserId, selectedUserId: user.id);
 
                 if (conversationId.isNotEmpty) {
+                  debugPrint("Navigating to new conversation page with id $conversationId");
                   // push to the new screen before popping off the modal sheet
 
-                  if (!context.mounted) return;
-                  Navigator.of(widget.parentContext).pushNamed(
-                    "/chat",
-                    arguments: {
-                      'conversationId': conversationId,
-                      'receiverName': '${user.firstName} ${user.lastName}',
-                    },
-                  );
+                  // if (!context.mounted) return;
+                  // Navigator.pop(context);
 
-                  if (!context.mounted) return;
-                  Navigator.pop(context);
+                  widget.onConversationCreated(
+                    conversationId,
+                    '${user.firstName} ${user.lastName}',
+                  );
                 }
               },
               title: Text("${user.firstName} ${user.lastName}"),

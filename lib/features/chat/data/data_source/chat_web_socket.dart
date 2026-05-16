@@ -57,6 +57,7 @@ class ChatWebSocket {
     required String conversationId,
     required String senderId,
     required String content,
+    required String tempId,
   }) {
     if (!_isConnected || _channel == null) {
       debugPrint("Not connected to WebSocket server");
@@ -65,7 +66,12 @@ class ChatWebSocket {
     _channel?.sink.add(
       jsonEncode({
         "event": "send_message",
-        "data": {"conversationId": conversationId, "senderId": senderId, "content": content},
+        "data": {
+          "conversationId": conversationId,
+          "senderId": senderId,
+          "content": content,
+          "tempId": tempId,
+        },
       }),
     );
     debugPrint("Message sent over websocket: $content(user $senderId)");

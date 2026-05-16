@@ -44,9 +44,10 @@ class ChatController extends StateNotifier<ChatData> {
   final Ref ref;
   final String conversationId;
   String? _userId;
-  ChatRepository? _chatRepository;
-  ChatWebSocket? _chatWebSocket;
-  AuthLocalStorage? _authLocalStorage;
+  static const _uuid = Uuid();
+  late final ChatRepository _chatRepository;
+  late final ChatWebSocket _chatWebSocket;
+  late final AuthLocalStorage _authLocalStorage;
 
   ChatController(this.ref, this.conversationId) : super(ChatData.initial()) {
     _chatWebSocket = ref.read(chatWebSocketProvider);
@@ -61,7 +62,7 @@ class ChatController extends StateNotifier<ChatData> {
   }
 
   void _init() async {
-    final user = await _authLocalStorage?.getUser();
+    final user = await _authLocalStorage.getUser();
 
     if (user == null) {
       debugPrint("UserModel not found");
@@ -69,9 +70,13 @@ class ChatController extends StateNotifier<ChatData> {
     }
 
     _userId = user.id;
+    if (_userId == null) {
+      debugPrint("User id was null");
+      return;
+    }
 
     _chatRepository
-        ?.getMessages(conversationId)
+        .getMessages(conversationId)
         .then((value) {
           state = state.copyWith(messages: value.messages, user: user);
           debugPrint(state.messages.length.toString());
@@ -84,24 +89,24 @@ class ChatController extends StateNotifier<ChatData> {
 
   void _handleIncoming(MessageEntity incoming) {
     if (incoming.conversationId != conversationId) return;
-    final optimisticIndex = state.messages.indexWhere(
-      (m) =>
-          m.id != incoming.id && m.senderId == incoming.senderId && m.content == incoming.content,
-    );
+
+    final optimisticIndex = state.messages.indexWhere((m) => m.id == incoming.tempId);
+
     if (optimisticIndex != -1) {
       final updated = [...state.messages];
       updated[optimisticIndex] = incoming;
-      _chatRepository?.cacheMessage(incoming);
+
+      _chatRepository.cacheMessage(incoming);
       state = state.copyWith(messages: updated);
     } else if (!state.messages.any((m) => m.id == incoming.id)) {
-      _chatRepository?.cacheMessage(incoming);
+      _chatRepository.cacheMessage(incoming);
       state = state.copyWith(messages: [...state.messages, incoming]);
     }
   }
 
   void sendMessage(String message) {
     try {
-      final tempId = Uuid().v4();
+      final tempId = _uuid.v4();
       final payload = MessageEntity(
         id: tempId,
         content: message,
@@ -112,10 +117,11 @@ class ChatController extends StateNotifier<ChatData> {
 
       state = state.copyWith(messages: [...state.messages, payload]);
 
-      _chatWebSocket?.sendMessage(
+      _chatWebSocket.sendMessage(
         conversationId: conversationId,
         senderId: _userId!,
         content: message,
+        tempId: tempId,
       );
     } catch (e) {
       debugPrint("Couldn't send message $e");
@@ -125,8 +131,8 @@ class ChatController extends StateNotifier<ChatData> {
   void deleteMessage(String messageId) {
     try {
       final request = DeleteMessagesReqEntity(conversationId: conversationId, messageId: messageId);
-      _chatRepository?.deleteMessages(request);
-      ref.invalidateSelf();
+      _chatRepository.deleteMessages(request);
+      state = state.copyWith(messages: state.messages.where((m) => m.id != messageId).toList());
     } catch (e) {
       debugPrint("Couldn't delete message $e");
     }

@@ -12,7 +12,6 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
 
-
   runApp(const ProviderScope(child: MyApp()));
 }
 
@@ -28,7 +27,7 @@ class MyApp extends ConsumerWidget {
       theme: AppTheme.light,
       home: switch (authState) {
         Authenticated() => const HomeScreen(),
-        UnAuthenticated() => const AuthInterface(),
+        UnAuthenticated() || AuthError() => const AuthInterface(),
       },
       onGenerateRoute: (settings) {
         if (settings.name == "/chat") {

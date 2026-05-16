@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:riverpod/riverpod.dart';
+import 'package:realtime_chat_engine/core/shared/app_exception.dart';
 import 'package:realtime_chat_engine/features/chat/data/data_source/chat_client.dart';
 import 'package:realtime_chat_engine/features/chat/data/data_source/chat_database.dart';
 import 'package:realtime_chat_engine/features/home/domain/entities/message_entity.dart';
@@ -55,45 +56,44 @@ class ChatRepositoryImpl implements ChatRepository {
       await _conversationDao.linkUserToConversation(req.participantIds[0], result.id);
 
       return result;
-    } catch (e) {
-      throw Exception(e);
+    } catch (e, st) {
+      throw AppException(
+        errorClass: "ChatRepositoryImpl",
+        errorMethod: "createConversations",
+        message: e.toString(),
+        stackTrace: st,
+      );
     }
   }
 
   @override
-  Future<GetConversationsResEntity> getConversations() async {
+  Future<GetConversationsResEntity> getConversations(String userId) async {
     try {
+      final cached = await _conversationDao.getUserConversations(userId);
+      if (cached.isNotEmpty) {
+        debugPrint("Conversations gotten from cache\n");
+        return GetConversationsResEntity(
+          conversations: cached.map(ConversationEntity.fromModel).toList(),
+        );
+      }
+
+      debugPrint("Cache was empty, calling API\n");
       final response = await chatClient.getConversations();
       final entity = GetConversationsResEntity.fromModel(response);
 
-      final updatedConversations = await Future.wait(
-        entity.conversations.map((conv) async {
-          final localMessages = await chatRoom.getMessages(conv.id);
-          if (localMessages.isEmpty) return conv;
+      for (final conv in entity.conversations) {
+        await _conversationDao.insertConversation(conv.toModel());
+        await _conversationDao.linkUserToConversation(userId, conv.id);
+      }
 
-          final apiLatest = conv.messages?.isNotEmpty == true
-              ? conv.messages!.reduce((a, b) => a.createdAt.isAfter(b.createdAt) ? a : b).createdAt
-              : DateTime.fromMillisecondsSinceEpoch(0);
-
-          final localLatest = localMessages
-              .reduce((a, b) => a.createdAt.isAfter(b.createdAt) ? a : b)
-              .createdAt;
-
-          if (localLatest.isAfter(apiLatest)) {
-            return ConversationEntity(
-              id: conv.id,
-              createdAt: conv.createdAt,
-              participants: conv.participants,
-              messages: localMessages,
-            );
-          }
-          return conv;
-        }),
+      return entity;
+    } catch (e, st) {
+      throw AppException(
+        errorClass: "ChatRepositoryImpl",
+        errorMethod: "getConversations",
+        message: e.toString(),
+        stackTrace: st,
       );
-
-      return GetConversationsResEntity(conversations: updatedConversations);
-    } catch (e) {
-      throw Exception(e);
     }
   }
 
@@ -106,8 +106,13 @@ class ChatRepositoryImpl implements ChatRepository {
         message.content,
         message.createdAt.millisecondsSinceEpoch,
       );
-    } catch (e) {
-      throw Exception(e);
+    } catch (e, st) {
+      throw AppException(
+        errorClass: "ChatRepositoryImpl",
+        errorMethod: "cacheMessage",
+        message: e.toString(),
+        stackTrace: st,
+      );
     }
   }
 

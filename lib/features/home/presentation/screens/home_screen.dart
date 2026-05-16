@@ -17,11 +17,11 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
-  void showError() {
+  void showError(BuildContext context) {
     final state = ref.watch(homeControllerProvider);
 
     if (state is HomeControllerStateError) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.error)));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.e)));
     }
   }
 
@@ -35,8 +35,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     if (state is HomeControllerStateError) {
       if (kDebugMode) {
-        debugPrint(state.error);
-        debugPrint(state.stackTrace);
+        debugPrint(state.e);
 
         return Scaffold(
           body: Padding(
@@ -46,8 +45,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 spacing: 32,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(state.error),
-                  Text(state.stackTrace),
+                  Text(state.e),
+                  Text(state.st.toString()),
                   ElevatedButton(
                     onPressed: () => ref.invalidate(homeControllerProvider),
                     child: const Text("Retry"),
@@ -57,6 +56,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ),
           ),
         );
+      } else {
+        showError(context);
       }
     }
 
@@ -68,9 +69,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             "${state.user.firstName}'s Chats",
             style: Theme.of(
               context,
-            ).textTheme.headlineLarge?.copyWith(fontWeight: AppFontWeight.bold),
+            ).textTheme.headlineMedium?.copyWith(fontWeight: AppFontWeight.bold),
           ),
         ),
+
         body: Column(
           children: [
             Expanded(
@@ -88,15 +90,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     orElse: () => conversation.participants!.first,
                   );
 
-                  final displayName = "${otherParticipant?.firstName} ${otherParticipant?.lastName}" ;
+                  final displayName =
+                      "${otherParticipant?.firstName} ${otherParticipant?.lastName}";
 
                   if (lastMessage == null) {
                     return ListTile(
-                      onTap: () =>
-                          Navigator.pushNamed(context, '/chat', arguments: {
-                            'conversationId': conversation.id,
-                            'receiverName': displayName,
-                          }),
+                      onTap: () => Navigator.pushNamed(
+                        context,
+                        '/chat',
+                        arguments: {'conversationId': conversation.id, 'receiverName': displayName},
+                      ),
                       leading: const CircleAvatar(child: Icon(Icons.person)),
                       title: Text(displayName),
                       titleTextStyle: Theme.of(
@@ -115,10 +118,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       : DateFormat('HH:mm').format(timeSent);
 
                   return ListTile(
-                    onTap: () => Navigator.pushNamed(context, '/chat', arguments: {
-                      'conversationId': conversation.id,
-                      'receiverName': displayName,
-                    }),
+                    onTap: () => Navigator.pushNamed(
+                      context,
+                      '/chat',
+                      arguments: {'conversationId': conversation.id, 'receiverName': displayName},
+                    ),
                     leading: const CircleAvatar(child: Icon(Icons.person)),
                     title: Text(displayName),
                     titleTextStyle: Theme.of(
@@ -161,11 +165,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
         floatingActionButton: FloatingActionButton(
           onPressed: () {
-            final parentContext = context;
             showCupertinoSheet(
               context: context,
-              builder: (context) {
-                return AvailableUsers(currentUserId: state.user.id, parentContext: parentContext);
+              builder: (sheetContext) {
+                return AvailableUsers(
+                  currentUserId: state.user.id,
+                  onConversationCreated: (conversationId, receiverName) {
+                    Navigator.of(context).pushNamed(
+                      "/chat",
+                      arguments: {'conversationId': conversationId, 'receiverName': receiverName},
+                    );
+                  },
+                );
               },
             );
           },

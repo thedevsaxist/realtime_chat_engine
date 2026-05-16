@@ -34,7 +34,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   void _scrollToBottom() {
     scrollController.animateTo(
       scrollController.position.maxScrollExtent,
-      duration: Duration(milliseconds: 250),
+      duration: Duration(milliseconds: 500),
       curve: Curves.easeInOut,
     );
   }
@@ -42,6 +42,18 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(chatControllerProvider(widget.conversationId));
+
+    ref.listen(
+      chatControllerProvider(widget.conversationId).select((state) {
+        return state.messages.length;
+      }),
+      (prev, next) {
+        if (next > (prev ?? 0)) {
+          WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+        }
+      },
+    );
+
     return GestureDetector(
       onTap: FocusScope.of(context).unfocus,
       child: Scaffold(
@@ -102,6 +114,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 ),
               ),
 
+              AppSpacing.mh,
+
               TextField(
                 maxLines: 4,
                 minLines: 1,
@@ -120,9 +134,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                       ref
                           .read(chatControllerProvider(widget.conversationId).notifier)
                           .sendMessage(messageController.text);
-                      messageController.clear();
 
-                      _scrollToBottom();
+                      messageController.clear();
                     },
 
                     child: Icon(Icons.send),

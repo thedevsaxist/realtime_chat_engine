@@ -27,7 +27,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   @override
   void initState() {
     super.initState();
-
     _switchToLoginScreen = TapGestureRecognizer()..onTap = _handlePress;
   }
 
@@ -43,6 +42,18 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(authControllerProvider, (_, next) {
+      if (next is AuthError && next.message == 'user_already_exists') {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text(
+              'An account with this email already exists. Please log in instead.',
+            ),
+            action: SnackBarAction(label: 'Log in', onPressed: _handlePress),
+          ),
+        );
+      }
+    });
     return GestureDetector(
       onTap: FocusScope.of(context).unfocus,
 
@@ -63,10 +74,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // first name
-              AuthTextField(
-                controller: firstNameController,
-                label: "First Name",
-              ),
+              AuthTextField(controller: firstNameController, label: "First Name"),
               SizedBox(height: 10),
 
               // last name
@@ -91,9 +99,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 builder: (context, child) {
                   return ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       padding: .symmetric(horizontal: 16, vertical: 12),
                       // backgroundColor: Colors.red,
                     ),
@@ -129,10 +135,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     TextSpan(
                       recognizer: _switchToLoginScreen,
                       text: "Login",
-                      style: TextStyle(
-                        fontStyle: .italic,
-                        color: AppColors.primaryBlue,
-                      ),
+                      style: TextStyle(fontStyle: .italic, color: AppColors.primaryBlue),
                     ),
                   ],
                 ),

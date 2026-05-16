@@ -1,40 +1,43 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:multiple_result/multiple_result.dart';
+import 'package:realtime_chat_engine/core/shared/app_exception.dart';
 import 'package:realtime_chat_engine/features/auth/data/data_source/auth_client.dart';
-import 'package:realtime_chat_engine/features/auth/data/data_source/auth_local_storage.dart';
-import 'package:realtime_chat_engine/features/auth/data/data_source/auth_secure_storage.dart';
 import 'package:realtime_chat_engine/features/auth/domain/entities/login_req_entity.dart';
 import 'package:realtime_chat_engine/features/auth/domain/entities/login_res_entity.dart';
+import 'package:realtime_chat_engine/features/auth/domain/repository/auth_repository.dart';
+import 'package:realtime_chat_engine/features/auth/data/data_source/auth_local_storage.dart';
 import 'package:realtime_chat_engine/features/auth/domain/entities/register_req_entity.dart';
 import 'package:realtime_chat_engine/features/auth/domain/entities/register_res_entity.dart';
-import 'package:realtime_chat_engine/features/auth/domain/repository/auth_repository.dart';
+import 'package:realtime_chat_engine/features/auth/data/data_source/auth_secure_storage.dart';
 import 'package:realtime_chat_engine/features/home/data/data_source/conversation_database.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
   final AuthClient _authClient;
+  final ConversationDao _conversationDao;
   final AuthLocalStorage _authLocalStorage;
   final AuthSecureStorage _authSecureStorage;
-  final ConversationDao _conversationDao;
 
   AuthRepositoryImpl(
     this._authClient,
+    this._conversationDao,
     this._authLocalStorage,
     this._authSecureStorage,
-    this._conversationDao,
   );
 
   @override
-  Future<RegisterResEntity> register(RegisterReqEntity reqEntity) async {
-    try {
-      final response = await _authClient.register(reqEntity.toModel());
+  Future<Result<RegisterResEntity, AppException>> register(RegisterReqEntity reqEntity) async {
+    final result = await _authClient.register(reqEntity.toModel());
 
-      if (response.token.isNotEmpty) {
-        await _authLocalStorage.saveUser(response.user);
-        await _authSecureStorage.saveToken(response.token, response.refreshToken);
-      }
-      return RegisterResEntity.fromModel(response);
-    } catch (e, st) {
-      throw Exception("[AuthRepositoryImpl.register] -> ${e.toString()} \n $st");
-    }
+    return result.when(
+      (response) async {
+        if (response.token.isNotEmpty) {
+          await _authLocalStorage.saveUser(response.user);
+          await _authSecureStorage.saveToken(response.token, response.refreshToken);
+        }
+        return Success(RegisterResEntity.fromModel(response));
+      },
+      (error) => Error(error),
+    );
   }
 
   @override
@@ -57,7 +60,12 @@ class AuthRepositoryImpl implements AuthRepository {
 
       return LoginResEntity.fromModel(result);
     } catch (e, st) {
-      throw Exception("[AuthRepositoryImpl.login] -> ${e.toString()} \n $st");
+      throw AppException(
+        errorClass: 'AuthRepositoryImpl',
+        errorMethod: 'login',
+        message: e.toString(),
+        stackTrace: st,
+      );
     }
   }
 }
@@ -65,8 +73,8 @@ class AuthRepositoryImpl implements AuthRepository {
 final authRepositoryProvider = Provider<AuthRepository>(
   (ref) => AuthRepositoryImpl(
     ref.read(authClientProvider),
+    ref.read(conversationDaoProvider),
     ref.read(authLocalStorageProvider),
     ref.read(authSecureStorageProvider),
-    ref.read(conversationDaoProvider),
   ),
 );
