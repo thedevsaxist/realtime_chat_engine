@@ -1,0 +1,151 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:realtime_chat_engine/core/theme/app_colors.dart';
+import 'package:realtime_chat_engine/core/theme/app_spacing.dart';
+import 'package:realtime_chat_engine/core/theme/font_weights.dart';
+import 'package:realtime_chat_engine/core/theme/text_styles.dart';
+import 'package:realtime_chat_engine/features/auth/presentation/controller/auth_controller.dart';
+import 'package:realtime_chat_engine/features/profile/presentation/controller/profile_controller.dart';
+import 'package:realtime_chat_engine/features/profile/presentation/widgets/settings_tile.dart';
+
+class ProfileScreen extends ConsumerStatefulWidget {
+  const ProfileScreen({super.key});
+
+  @override
+  ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends ConsumerState<ProfileScreen> {
+  @override
+  Widget build(BuildContext context) {
+    final state = ref.watch(profileControllerProvider);
+
+    if (state is ErrorState) {
+      return Scaffold(
+        body: Column(
+          children: [
+            Center(child: Icon(Icons.warning, size: 60)),
+            Text("Nothing to see here"),
+          ],
+        ),
+      );
+    }
+
+    if (state is DefaultState) {
+      return Scaffold(
+        appBar: AppBar(),
+        body: Padding(
+          padding: const EdgeInsets.fromLTRB(25.0, 0.0, 25.0, 25.0),
+          child: Center(
+            child: Column(
+              children: [
+                CircleAvatar(
+                  radius: 40,
+                  backgroundColor: Colors.grey.shade300,
+                  child: Text(
+                    state.userDetails.firstName.split('')[0].toUpperCase(),
+                    style: AppTextStyle.headlineLarge.copyWith(
+                      fontWeight: AppFontWeight.semiBold,
+                      color: Colors.black,
+                    ),
+                  ),
+                ),
+
+                AppSpacing.sh,
+
+                Text(
+                  "${state.userDetails.firstName} ${state.userDetails.lastName}",
+                  style: AppTextStyle.titleLarge.copyWith(
+                    fontWeight: AppFontWeight.semiBold,
+                    color: Colors.black,
+                  ),
+                ),
+
+                Text(
+                  state.userDetails.email,
+                  style: AppTextStyle.bodyMedium.copyWith(color: AppColors.neutral500),
+                ),
+
+                AppSpacing.xlh,
+
+                Align(
+                  alignment: .centerLeft,
+                  child: Text(
+                    "Settings",
+                    style: AppTextStyle.labelLarge.copyWith(
+                      color: AppColors.neutral500,
+                      letterSpacing: 0,
+                    ),
+                  ),
+                ),
+
+                // Account settings
+                SettingsTile(
+                  title: "Account",
+                  subTitle: "Change your account settings here",
+                  icon: Icons.account_box,
+                ),
+
+                Divider(height: 0, color: Colors.grey.shade400),
+
+                // Notification settings
+                SettingsTile(
+                  title: "Notification",
+                  subTitle: "Tune your notification settings here",
+                  icon: Icons.notifications,
+                ),
+
+                Divider(height: 0, color: Colors.grey.shade400),
+
+                // Theme settings
+                SettingsTile(
+                  title: "Theme",
+                  subTitle: "Customize the app to your liking",
+                  icon: Icons.palette,
+                ),
+
+                Divider(height: 0, color: Colors.grey.shade400),
+
+                const Spacer(),
+
+                TextButton(
+                  onPressed: () async {
+                    print("1. Logout tapped");
+                    await ref.read(authControllerProvider.notifier).logOut();
+                    print("2. LogOut() completed");
+                    print("3. Auth state is now: ${ref.read(authControllerProvider)}");
+                    if (context.mounted) {
+                      print("4. Context is mounted, popping");
+                      Navigator.of(context).popUntil((route) => route.isFirst);
+                    } else {
+                      print("4. Context is NOT mounted");
+                    }
+                  },
+                  child: Row(
+                    spacing: 8,
+                    mainAxisAlignment: .center,
+                    children: [
+                      Text(
+                        "Log out",
+                        style: AppTextStyle.titleMedium.copyWith(
+                          color: AppColors.error,
+                          letterSpacing: -1,
+                        ),
+                      ),
+
+                      Icon(Icons.logout, color: AppColors.error),
+                    ],
+                  ),
+                ),
+
+                AppSpacing.mh,
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    return SizedBox.shrink();
+  }
+}

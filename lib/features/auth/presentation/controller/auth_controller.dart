@@ -82,16 +82,13 @@ class AuthController extends StateNotifier<AuthState> {
 
       final result = await _authRepository.register(entity);
 
-      result.when(
-        (response) async {
-          if (response.token.isEmpty) {
-            state = UnAuthenticated();
-            return;
-          }
-          await _onAuthSuccess(response.user.id, response.token);
-        },
-        (error) => state = AuthError(error.message),
-      );
+      result.when((response) async {
+        if (response.token.isEmpty) {
+          state = UnAuthenticated();
+          return;
+        }
+        await _onAuthSuccess(response.user.id, response.token);
+      }, (error) => state = AuthError(error.message));
     } catch (e) {
       debugPrint("Couldn't register user $e");
     }
@@ -122,14 +119,12 @@ class AuthController extends StateNotifier<AuthState> {
   }
 
   Future<void> logOut() async {
+    debugPrint("Logging out");
     try {
-      await Future.wait([
-        _chatWebSocket.disconnect(),
-        _authSecureStorage.deleteTokens(),
-        _authLocalStorage.deleteUser(),
-        _chatRepository.clearCache(),
-      ]);
-
+      await _chatWebSocket.disconnect();
+      await _authSecureStorage.deleteTokens();
+      await _authLocalStorage.deleteUser();
+      await _chatRepository.clearCache();
       state = UnAuthenticated();
     } catch (e) {
       debugPrint("Couldn't clear cache $e");

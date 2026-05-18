@@ -35,6 +35,15 @@ class ConversationDao {
     for (final m in c.messages!) {
       await db.insert('messages', m.toJson(), conflictAlgorithm: ConflictAlgorithm.replace);
     }
+
+    for (final p in (c.participants ?? [])) {
+      await db.insert('conversation_participants', {
+        'conversationId': c.id,
+        'userId': p.userId,
+        'firstName': p.firstName,
+        'lastName': p.lastName,
+      }, conflictAlgorithm: ConflictAlgorithm.replace);
+    }
   }
 
   Future<void> linkUserToConversation(String userId, String conversationId) async {
@@ -59,7 +68,19 @@ class ConversationDao {
       [userId],
     );
 
-    return result.map((json) => ConversationModel.fromJson(json)).toList();
+    final conversations = <ConversationModel>[];
+    for (final json in result) {
+      final participants = await db.query(
+        'conversation_participants',
+        where: 'conversationId = ?',
+        whereArgs: [json['id']],
+      );
+      conversations.add(ConversationModel.fromJson({
+        ...json,
+        'participants': participants,
+      }));
+    }
+    return conversations;
   }
 
   Future<void> updateLastMessage(String conversationId, String message, int time) async {
@@ -77,5 +98,6 @@ class ConversationDao {
     await db.delete('messages');
     await db.delete('conversations');
     await db.delete('user_conversations');
+    await db.delete('conversation_participants');
   }
 }

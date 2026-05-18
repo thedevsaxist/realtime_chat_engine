@@ -23,7 +23,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 2,
+      version: 3,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -39,6 +39,17 @@ class DatabaseHelper {
           firstName TEXT,
           lastName TEXT,
           createdAt INTEGER
+        )
+      ''');
+    }
+    if (oldVersion < 3) {
+      await db.execute('''
+        CREATE TABLE conversation_participants (
+          conversationId TEXT,
+          userId TEXT,
+          firstName TEXT,
+          lastName TEXT,
+          PRIMARY KEY (conversationId, userId)
         )
       ''');
     }
@@ -69,6 +80,16 @@ class DatabaseHelper {
         userId TEXT,
         conversationId TEXT,
         PRIMARY KEY (userId, conversationId)
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE conversation_participants (
+        conversationId TEXT,
+        userId TEXT,
+        firstName TEXT,
+        lastName TEXT,
+        PRIMARY KEY (conversationId, userId)
       )
     ''');
 

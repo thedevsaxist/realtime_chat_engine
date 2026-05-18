@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:realtime_chat_engine/core/theme/app_theme.dart';
-import 'package:realtime_chat_engine/features/auth/presentation/controller/auth_controller.dart';
-import 'package:realtime_chat_engine/features/auth/presentation/widget/auth_interface.dart';
-import 'package:realtime_chat_engine/features/home/presentation/screens/home_screen.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'features/chat/presentation/screens/chat_screen.dart';
+import 'package:realtime_chat_engine/core/theme/app_theme.dart';
+import 'package:realtime_chat_engine/core/config/auth_date.dart';
+import 'package:realtime_chat_engine/features/profile/presentation/screens/profile_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,15 +18,13 @@ class MyApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final authState = ref.watch(authControllerProvider);
+    // final authState = ref.watch(authControllerProvider);
 
     return MaterialApp(
       title: 'Realtime Chat Engine',
       theme: AppTheme.light,
-      home: switch (authState) {
-        Authenticated() => const HomeScreen(),
-        UnAuthenticated() || AuthError() => const AuthInterface(),
-      },
+      home: AuthGate(),
+      routes: {'/profile': (context) => ProfileScreen()},
       onGenerateRoute: (settings) {
         if (settings.name == "/chat") {
           final args = settings.arguments as Map<String, String>;

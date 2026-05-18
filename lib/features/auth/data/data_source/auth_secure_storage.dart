@@ -7,7 +7,7 @@ import 'package:sqflite_sqlcipher/sqflite.dart';
 final authSecureStorageProvider = Provider((ref) => AuthSecureStorage());
 
 class AuthSecureStorage {
-  static Database? _database;
+  Database? _database;
 
   Future<Database> get database async {
     final dbPath = await getDatabasesPath();
@@ -58,6 +58,7 @@ class AuthSecureStorage {
   Future<void> deleteTokens() async {
     final db = await database;
     await db.delete("auth");
+    await db.close();
     _database = null;
   }
 }

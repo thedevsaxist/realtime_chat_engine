@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:realtime_chat_engine/core/theme/app_colors.dart';
 import 'package:realtime_chat_engine/core/theme/app_spacing.dart';
+import 'package:realtime_chat_engine/core/theme/font_weights.dart';
 import 'package:realtime_chat_engine/core/theme/padding_styles.dart';
 import 'package:realtime_chat_engine/core/theme/radius_styles.dart';
+import 'package:realtime_chat_engine/core/theme/text_styles.dart';
 import 'package:realtime_chat_engine/features/home/domain/entities/message_entity.dart';
 import 'package:realtime_chat_engine/features/chat/presentation/controller/chat_controller.dart';
 
@@ -57,7 +59,31 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     return GestureDetector(
       onTap: FocusScope.of(context).unfocus,
       child: Scaffold(
-        appBar: AppBar(title: Text(widget.receiverName)),
+        appBar: AppBar(
+          surfaceTintColor: Colors.white,
+          leadingWidth: 35,
+          centerTitle: false,
+          title: Text(
+            widget.receiverName,
+            style: AppTextStyle.titleMedium.copyWith(letterSpacing: 0),
+          ),
+
+          actionsPadding: .only(right: 10),
+          actions: [
+            // user's profile picture
+            CircleAvatar(
+              radius: 20,
+              backgroundColor: Colors.grey.shade300,
+              child: Text(
+                widget.receiverName.split('')[0].toUpperCase(),
+                style: AppTextStyle.bodyLarge.copyWith(
+                  fontWeight: AppFontWeight.semiBold,
+                  color: Colors.black,
+                ),
+              ),
+            ),
+          ],
+        ),
         body: Padding(
           padding: const EdgeInsets.all(20.0),
           child: Column(
@@ -173,7 +199,6 @@ class ChatBubble extends ConsumerWidget {
   final AlignmentGeometry alignment;
   final Color textColor;
   final Color bubbleColor;
-
   final String conversationId;
 
   @override
@@ -198,17 +223,26 @@ class ChatBubble extends ConsumerWidget {
           );
         },
         child: Container(
-          // width: 220,
           constraints: BoxConstraints(maxWidth: 220),
-          padding: AppPaddingStyles.paddingH16V12,
+          padding: AppPaddingStyles.paddingA12,
           decoration: BoxDecoration(
             borderRadius: AppRadiusStyles.borderRadius16,
             color: bubbleColor,
           ),
-          child: Text(
-            data.content,
-            softWrap: true,
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: textColor),
+          child: Column(
+            spacing: 8,
+            crossAxisAlignment: .end,
+            children: [
+              Text(
+                data.content,
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: textColor),
+              ),
+
+              Text(
+                TimeOfDay.fromDateTime(data.createdAt).format(context),
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(color: textColor),
+              ),
+            ],
           ),
         ),
       ),

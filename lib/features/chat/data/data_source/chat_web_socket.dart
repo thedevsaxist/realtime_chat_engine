@@ -116,7 +116,7 @@ class ChatWebSocket {
     _shouldReconnect = false;
     _isConnected = false;
     await _channel?.sink.close(status.normalClosure);
-    await _streamController?.close();
+    _streamController?.close();
     _streamController = null;
   }
 }

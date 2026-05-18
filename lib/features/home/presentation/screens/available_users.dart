@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:realtime_chat_engine/core/theme/font_weights.dart';
+import 'package:realtime_chat_engine/core/theme/text_styles.dart';
 
 import '../controller/available_users_controller.dart';
 
@@ -48,7 +50,7 @@ class _AvailableUsersState extends ConsumerState<AvailableUsers> {
 
       return Scaffold(
         appBar: AppBar(
-          title: Text("Select a user to start chatting"),
+          title: Text("New Chat"),
           centerTitle: false,
           automaticallyImplyLeading: false,
         ),
@@ -59,6 +61,17 @@ class _AvailableUsersState extends ConsumerState<AvailableUsers> {
             final user = users[index];
 
             return ListTile(
+              leading: CircleAvatar(
+                // radius: 40,
+                backgroundColor: Colors.grey.shade300,
+                child: Text(
+                  user.firstName.split('')[0].toUpperCase(),
+                  style: AppTextStyle.bodyLarge.copyWith(
+                    fontWeight: AppFontWeight.semiBold,
+                    color: Colors.black,
+                  ),
+                ),
+              ),
               onTap: () async {
                 final conversationId = await ref
                     .read(availableUsersController.notifier)
@@ -66,10 +79,6 @@ class _AvailableUsersState extends ConsumerState<AvailableUsers> {
 
                 if (conversationId.isNotEmpty) {
                   debugPrint("Navigating to new conversation page with id $conversationId");
-                  // push to the new screen before popping off the modal sheet
-
-                  // if (!context.mounted) return;
-                  // Navigator.pop(context);
 
                   widget.onConversationCreated(
                     conversationId,

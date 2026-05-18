@@ -1,13 +1,13 @@
+import 'package:collection/collection.dart';
+import 'package:intl/intl.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:realtime_chat_engine/core/theme/font_weights.dart';
-import 'package:realtime_chat_engine/features/auth/presentation/controller/auth_controller.dart';
 import 'package:realtime_chat_engine/features/home/domain/entities/conversation_entity.dart';
-import 'package:realtime_chat_engine/features/home/presentation/controller/home_controller.dart';
 import 'package:realtime_chat_engine/features/home/presentation/screens/available_users.dart';
+import 'package:realtime_chat_engine/features/home/presentation/controller/home_controller.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -64,13 +64,55 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     if (state is HomeControllerStateSuccess) {
       return Scaffold(
         appBar: AppBar(
+          leadingWidth: 55,
+          leading: Padding(
+            padding: const EdgeInsets.only(left: 10.0),
+            child: GestureDetector(
+              onTap: () => Navigator.pushNamed(context, '/profile'),
+              child: CircleAvatar(
+                backgroundColor: Colors.grey.shade300,
+                child: Text(
+                  state.user.firstName.split('')[0].toUpperCase(),
+                  style: TextStyle(fontWeight: AppFontWeight.extraBold, color: Colors.black),
+                ),
+              ),
+            ),
+          ),
           centerTitle: false,
           title: Text(
-            "${state.user.firstName}'s Chats",
+            "Chats",
             style: Theme.of(
               context,
             ).textTheme.headlineMedium?.copyWith(fontWeight: AppFontWeight.bold),
           ),
+
+          actions: [
+            IconButton.filled(
+              iconSize: 22,
+              padding: .zero,
+              constraints: .tight(.fromRadius(16)),
+              icon: Icon(Icons.add),
+              onPressed: () {
+                showCupertinoSheet(
+                  context: context,
+                  builder: (sheetContext) {
+                    return AvailableUsers(
+                      currentUserId: state.user.id,
+                      onConversationCreated: (conversationId, receiverName) {
+                        Navigator.of(context).pushNamed(
+                          "/chat",
+                          arguments: {
+                            'conversationId': conversationId,
+                            'receiverName': receiverName,
+                          },
+                        );
+                      },
+                    );
+                  },
+                );
+              },
+            ),
+          ],
         ),
 
         body: Column(
@@ -85,9 +127,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       ? messages.reduce((a, b) => a.createdAt.isAfter(b.createdAt) ? a : b)
                       : null;
 
-                  final otherParticipant = conversation.participants?.firstWhere(
+                  final otherParticipant = conversation.participants?.firstWhereOrNull(
                     (p) => p.userId != state.user.id,
-                    orElse: () => conversation.participants!.first,
                   );
 
                   final displayName =
@@ -101,11 +142,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         arguments: {'conversationId': conversation.id, 'receiverName': displayName},
                       ),
                       leading: const CircleAvatar(child: Icon(Icons.person)),
-                      title: Text(displayName),
+                      title: Text(displayName, style: TextStyle(letterSpacing: 0)),
                       titleTextStyle: Theme.of(
                         context,
                       ).textTheme.titleMedium?.copyWith(fontWeight: AppFontWeight.semiBold),
-                      subtitle: const Text('No messages yet'),
+                      subtitle: const Text('No messages yet', style: TextStyle(fontStyle: .italic)),
                       subtitleTextStyle: Theme.of(
                         context,
                       ).textTheme.bodyMedium?.copyWith(fontWeight: AppFontWeight.regular),
@@ -124,7 +165,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       arguments: {'conversationId': conversation.id, 'receiverName': displayName},
                     ),
                     leading: const CircleAvatar(child: Icon(Icons.person)),
-                    title: Text(displayName),
+                    title: Text(displayName, style: TextStyle(letterSpacing: -1)),
                     titleTextStyle: Theme.of(
                       context,
                     ).textTheme.titleMedium?.copyWith(fontWeight: AppFontWeight.semiBold),
@@ -143,44 +184,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
             ),
 
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                padding: .symmetric(horizontal: 16, vertical: 12),
-                backgroundColor: Colors.red,
-              ),
-              onPressed: () => ref.read(authControllerProvider.notifier).logOut(),
-              child: Text(
-                "Log out",
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: Colors.white,
-                  fontWeight: AppFontWeight.semiBold,
-                ),
-              ),
-            ),
-
             const SizedBox(height: 50),
           ],
-        ),
-
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            showCupertinoSheet(
-              context: context,
-              builder: (sheetContext) {
-                return AvailableUsers(
-                  currentUserId: state.user.id,
-                  onConversationCreated: (conversationId, receiverName) {
-                    Navigator.of(context).pushNamed(
-                      "/chat",
-                      arguments: {'conversationId': conversationId, 'receiverName': receiverName},
-                    );
-                  },
-                );
-              },
-            );
-          },
-          child: Icon(Icons.edit),
         ),
       );
     }

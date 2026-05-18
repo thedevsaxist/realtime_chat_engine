@@ -47,6 +47,7 @@ class AuthLocalStorage {
   Future<void> deleteUser() async {
     final db = await _helper.database;
     await db.delete('users');
+    await db.close();
     _helper.resetDatabase();
   }
 }

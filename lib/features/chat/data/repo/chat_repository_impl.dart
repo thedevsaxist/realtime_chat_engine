@@ -70,6 +70,7 @@ class ChatRepositoryImpl implements ChatRepository {
   Future<GetConversationsResEntity> getConversations(String userId) async {
     try {
       final cached = await _conversationDao.getUserConversations(userId);
+      
       if (cached.isNotEmpty) {
         debugPrint("Conversations gotten from cache\n");
         return GetConversationsResEntity(
