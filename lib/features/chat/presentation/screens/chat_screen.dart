@@ -18,27 +18,60 @@ class ChatScreen extends ConsumerStatefulWidget {
   ConsumerState<ChatScreen> createState() => _ChatScreenState();
 }
 
-class _ChatScreenState extends ConsumerState<ChatScreen> {
+class _ChatScreenState extends ConsumerState<ChatScreen> with WidgetsBindingObserver {
   final TextEditingController messageController = TextEditingController();
-  final ScrollController scrollController = ScrollController();
+  final ScrollController _scrollController = ScrollController();
 
   bool _showScrollButton = false;
 
   @override
   void initState() {
     super.initState();
-    scrollController.addListener(() {
-      final isAway = scrollController.position.maxScrollExtent - scrollController.offset > 200;
+    WidgetsBinding.instance.addObserver(this);
+    _scrollController.addListener(_onScroll);
+
+    _scrollController.addListener(() {
+      final isAway = _scrollController.position.maxScrollExtent - _scrollController.offset > 200;
       if (isAway != _showScrollButton) setState(() => _showScrollButton = isAway);
     });
   }
 
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Re-mark when user comes back to the app
+    if (state == AppLifecycleState.resumed) _markAsRead();
+  }
+
+  void _onScroll() {
+    final currentPosition = _scrollController.position;
+    if (currentPosition.pixels == 0) _markAsRead;
+  }
+
+  void _markAsRead() {
+    final messages = ref.read(chatControllerProvider(widget.conversationId)).messages;
+    final lastMessage = messages.firstOrNull;
+    if (lastMessage == null) return;
+
+    debugPrint("Marking as read: $lastMessage...");
+
+    ref
+        .read(chatControllerProvider(widget.conversationId).notifier)
+        .markAsRead(lastMessageId: lastMessage.id);
+  }
+
   void _scrollToBottom() {
-    scrollController.animateTo(
-      scrollController.position.maxScrollExtent,
+    _scrollController.animateTo(
+      _scrollController.position.maxScrollExtent,
       duration: Duration(milliseconds: 500),
       curve: Curves.easeInOut,
     );
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _scrollController.dispose();
+    super.dispose();
   }
 
   @override
@@ -93,7 +126,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   children: [
                     Positioned.fill(
                       child: ListView.separated(
-                        controller: scrollController,
+                        controller: _scrollController,
                         separatorBuilder: (context, index) => AppSpacing.sh,
                         itemCount: state.messages.length,
                         itemBuilder: (context, index) {
@@ -106,6 +139,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                               alignment: Alignment.centerLeft,
                               bubbleColor: AppColors.grayBubble,
                               textColor: AppColors.neutral900,
+                              currentUserId: state.user.id,
                             );
                           }
 
@@ -116,6 +150,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                               alignment: Alignment.centerRight,
                               bubbleColor: AppColors.primaryBlue,
                               textColor: AppColors.neutral100,
+                              currentUserId: state.user.id,
                             );
                           }
                           return SizedBox.shrink();
@@ -186,6 +221,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 }
 
 class ChatBubble extends ConsumerWidget {
+  final MessageEntity data;
+  final AlignmentGeometry alignment;
+  final Color textColor;
+  final Color bubbleColor;
+  final String conversationId;
+  final String currentUserId;
+
   const ChatBubble({
     super.key,
     required this.data,
@@ -193,13 +235,18 @@ class ChatBubble extends ConsumerWidget {
     required this.textColor,
     required this.bubbleColor,
     required this.conversationId,
+    required this.currentUserId,
   });
 
-  final MessageEntity data;
-  final AlignmentGeometry alignment;
-  final Color textColor;
-  final Color bubbleColor;
-  final String conversationId;
+  Widget buildReadTick(MessageEntity message, String currentUserId) {
+    if (message.senderId != currentUserId) return const SizedBox.shrink();
+
+    return Icon(
+      Icons.done_all,
+      size: 14,
+      color: message.isRead ?? false ? Colors.blue : Colors.grey,
+    );
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -238,9 +285,15 @@ class ChatBubble extends ConsumerWidget {
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: textColor),
               ),
 
-              Text(
-                TimeOfDay.fromDateTime(data.createdAt).format(context),
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(color: textColor),
+              Row(
+                children: [
+                  Text(
+                    TimeOfDay.fromDateTime(data.createdAt).format(context),
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(color: textColor),
+                  ),
+
+                  buildReadTick(data, currentUserId),
+                ],
               ),
             ],
           ),

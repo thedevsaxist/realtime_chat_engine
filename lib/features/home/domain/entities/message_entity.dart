@@ -7,6 +7,7 @@ class MessageEntity {
   final String senderId;
   final String conversationId;
   final DateTime createdAt;
+  final bool? isRead;
 
   MessageEntity({
     required this.id,
@@ -15,6 +16,7 @@ class MessageEntity {
     required this.senderId,
     required this.conversationId,
     required this.createdAt,
+    this.isRead,
   });
 
   factory MessageEntity.fromModel(MessageModel model) {
@@ -36,6 +38,18 @@ class MessageEntity {
       senderId: senderId,
       conversationId: conversationId,
       createdAt: createdAt,
+    );
+  }
+
+  MessageEntity copyWith({bool? isRead}) {
+    return MessageEntity(
+      id: id,
+      tempId: tempId,
+      content: content,
+      senderId: senderId,
+      conversationId: conversationId,
+      createdAt: createdAt,
+      isRead: isRead ?? this.isRead,
     );
   }
 }

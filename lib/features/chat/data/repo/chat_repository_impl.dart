@@ -9,6 +9,7 @@ import 'package:realtime_chat_engine/features/home/domain/entities/conversation_
 import 'package:realtime_chat_engine/features/chat/domain/repositories/chat_repository.dart';
 import 'package:realtime_chat_engine/features/home/data/data_source/conversation_database.dart';
 import 'package:realtime_chat_engine/features/home/domain/entities/get_messages_res_entity.dart';
+import 'package:realtime_chat_engine/features/chat/domain/entities/mark_as_read_res_entity.dart';
 import 'package:realtime_chat_engine/features/chat/domain/entities/delete_messages_req_entity.dart';
 import 'package:realtime_chat_engine/features/home/domain/entities/get_conversations_res_entity.dart';
 import 'package:realtime_chat_engine/features/chat/domain/entities/create_conversation_req_entity.dart';
@@ -70,7 +71,7 @@ class ChatRepositoryImpl implements ChatRepository {
   Future<GetConversationsResEntity> getConversations(String userId) async {
     try {
       final cached = await _conversationDao.getUserConversations(userId);
-      
+
       if (cached.isNotEmpty) {
         debugPrint("Conversations gotten from cache\n");
         return GetConversationsResEntity(
@@ -121,8 +122,13 @@ class ChatRepositoryImpl implements ChatRepository {
   Future<void> deleteMessages(DeleteMessagesReqEntity req) async {
     try {
       chatRoom.deleteMessage(req.conversationId, req.messageId);
-    } catch (e) {
-      throw Exception(e);
+    } catch (e, st) {
+      throw AppException(
+        errorClass: "ChatRepositoryImpl",
+        errorMethod: "deleteMessage",
+        message: e.toString(),
+        stackTrace: st,
+      );
     }
   }
 
@@ -133,6 +139,43 @@ class ChatRepositoryImpl implements ChatRepository {
       await _conversationDao.clearAll();
     } catch (e) {
       throw Exception(e);
+    }
+  }
+
+  @override
+  Future<int> getUnreadCount({required String conversationId}) async {
+    try {
+      final unreadCount = await chatClient.getUnreadCount(conversationId: conversationId);
+      return unreadCount;
+    } catch (e, st) {
+      throw AppException(
+        errorClass: "ChatRepositoryImpl",
+        errorMethod: "getUnreadCount",
+        message: e.toString(),
+        stackTrace: st,
+      );
+    }
+  }
+
+  @override
+  Future<MarkAsReadResEntity> markAsRead({
+    required String conversationId,
+    required String lastMessageId,
+  }) async {
+    try {
+      final result = await chatClient.markAsRead(
+        conversationId: conversationId,
+        lastMessageId: lastMessageId,
+      );
+
+      return MarkAsReadResEntity.fromModel(result);
+    } catch (e, st) {
+      throw AppException(
+        errorClass: "ChatRepositoryImpl",
+        errorMethod: "markAsRead",
+        message: e.toString(),
+        stackTrace: st,
+      );
     }
   }
 }

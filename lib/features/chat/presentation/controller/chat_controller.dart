@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:realtime_chat_engine/core/shared/message_bus.dart';
 import 'package:realtime_chat_engine/features/auth/data/data_source/auth_local_storage.dart';
+import 'package:realtime_chat_engine/features/chat/domain/entities/read_receipt_entity.dart';
 import 'package:realtime_chat_engine/features/home/domain/entities/message_entity.dart';
 import 'package:realtime_chat_engine/features/chat/data/repo/chat_repository_impl.dart';
 import 'package:realtime_chat_engine/features/chat/domain/entities/delete_messages_req_entity.dart';
@@ -40,6 +41,11 @@ final chatControllerProvider = StateNotifierProvider.family<ChatController, Chat
   (ref, conversationId) => ChatController(ref, conversationId),
 );
 
+// unread count — family so each conversation has its own count
+final unreadCountProvider = FutureProvider.family<int, String>((ref, conversationId) {
+  return ref.read(chatRepositoryProvider).getUnreadCount(conversationId: conversationId);
+});
+
 class ChatController extends StateNotifier<ChatData> {
   final Ref ref;
   final String conversationId;
@@ -56,6 +62,10 @@ class ChatController extends StateNotifier<ChatData> {
 
     ref.listen(incomingMessageProvider, (_, next) {
       next.whenData(_handleIncoming);
+    });
+
+    ref.listen(incomingReadReceiptProvider, (_, next) {
+      next.whenData(_handleReadReceipt);
     });
 
     _init();
@@ -104,6 +114,26 @@ class ChatController extends StateNotifier<ChatData> {
     }
   }
 
+  void _handleReadReceipt(ReadReceiptEntity receipt){
+    // ignore receipts for other conversations
+    if (receipt.conversationId != conversationId) return;
+
+    // mark all messages up to lastMessageId as read
+    final updated = state.messages.map((m) {
+      final isRead =
+          m.createdAt.isBefore(
+            state.messages
+                .firstWhere((msg) => msg.id == receipt.lastMessageId, orElse: () => m)
+                .createdAt,
+          ) ||
+          m.id == receipt.lastMessageId;
+
+      return m.copyWith(isRead: isRead);
+    }).toList();
+
+    state = state.copyWith(messages: updated);
+  }
+
   void sendMessage(String message) {
     try {
       final tempId = _uuid.v4();
@@ -125,6 +155,17 @@ class ChatController extends StateNotifier<ChatData> {
       );
     } catch (e) {
       debugPrint("Couldn't send message $e");
+    }
+  }
+
+  Future<void> markAsRead({required String lastMessageId}) async {
+    final result = await ref
+        .read(chatRepositoryProvider)
+        .markAsRead(conversationId: conversationId, lastMessageId: lastMessageId);
+
+    if (result.success) {
+      // invalidate so the badge re-fetches
+      ref.invalidate(unreadCountProvider(conversationId));
     }
   }
 

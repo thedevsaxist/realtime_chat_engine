@@ -4,7 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:realtime_chat_engine/core/theme/app_colors.dart';
 import 'package:realtime_chat_engine/core/theme/font_weights.dart';
+import 'package:realtime_chat_engine/core/theme/text_styles.dart';
+import 'package:realtime_chat_engine/features/chat/presentation/controller/chat_controller.dart';
 import 'package:realtime_chat_engine/features/home/domain/entities/conversation_entity.dart';
 import 'package:realtime_chat_engine/features/home/presentation/screens/available_users.dart';
 import 'package:realtime_chat_engine/features/home/presentation/controller/home_controller.dart';
@@ -158,6 +161,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       ? DateFormat('MM/dd/yyyy').format(timeSent)
                       : DateFormat('HH:mm').format(timeSent);
 
+                  final unreadAsync = ref.watch(unreadCountProvider(conversation.id));
+
                   return ListTile(
                     onTap: () => Navigator.pushNamed(
                       context,
@@ -165,19 +170,32 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       arguments: {'conversationId': conversation.id, 'receiverName': displayName},
                     ),
                     leading: const CircleAvatar(child: Icon(Icons.person)),
+
                     title: Text(displayName, style: TextStyle(letterSpacing: -1)),
                     titleTextStyle: Theme.of(
                       context,
                     ).textTheme.titleMedium?.copyWith(fontWeight: AppFontWeight.semiBold),
+
                     subtitle: Text(lastMessage.content),
                     subtitleTextStyle: Theme.of(
                       context,
                     ).textTheme.bodyMedium?.copyWith(fontWeight: AppFontWeight.regular),
-                    trailing: Text(
-                      time,
-                      style: Theme.of(
-                        context,
-                      ).textTheme.labelSmall?.copyWith(fontWeight: AppFontWeight.medium),
+
+                    trailing: unreadAsync.whenOrNull(
+                      data: (count) => Column(
+                        mainAxisAlignment: .end,
+                        children: [
+                          Text(
+                            time,
+                            style: AppTextStyle.labelSmall.copyWith(
+                              fontWeight: count > 0 ? AppFontWeight.semiBold : AppFontWeight.medium,
+                              color: count > 0 ? AppColors.primaryBlue : Colors.grey.shade400,
+                            ),
+                          ),
+
+                          count > 0 ? Badge(label: Text('$count')) : SizedBox.shrink(),
+                        ],
+                      ),
                     ),
                   );
                 },

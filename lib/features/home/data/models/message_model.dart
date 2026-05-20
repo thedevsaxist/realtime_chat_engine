@@ -27,7 +27,6 @@ class MessageModel {
       createdAt: dateTimeFromJson(json['createdAt']),
     );
   }
-  
 
   // [tempId] was omitted here cause it was conflicting with the database schema
   Map<String, dynamic> toJson() {
