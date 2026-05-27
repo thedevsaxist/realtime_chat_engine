@@ -40,6 +40,31 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final state = ref.watch(authControllerProvider);
+    final isLoading = state is LoadingState;
+
+    if (state is AuthError) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message)));
+      });
+    }
+
+    return Stack(
+      children: [
+        _buildBody(),
+        if (isLoading)
+          const Positioned.fill(
+            child: ColoredBox(
+              color: Color(0x66000000),
+              child: Center(child: CircularProgressIndicator()),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildBody() {
     return GestureDetector(
       onTap: FocusScope.of(context).unfocus,
 
@@ -67,30 +92,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               SizedBox(height: 30),
 
               ListenableBuilder(
-                listenable: Listenable.merge([
-                  emailController,
-                  passwordController,
-                ]),
+                listenable: Listenable.merge([emailController, passwordController]),
                 builder: (context, child) {
                   return ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       padding: .symmetric(horizontal: 16, vertical: 12),
                       // backgroundColor: Colors.red,
                     ),
-                    onPressed:
-                        emailController.text.isEmpty ||
-                            passwordController.text.isEmpty
+                    onPressed: emailController.text.isEmpty || passwordController.text.isEmpty
                         ? null
                         : () {
                             ref
                                 .read(authControllerProvider.notifier)
-                                .login(
-                                  emailController.text.trim(),
-                                  passwordController.text.trim(),
-                                );
+                                .login(emailController.text.trim(), passwordController.text.trim());
                           },
                     child: const Text("Login"),
                   );
@@ -108,10 +123,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       recognizer: _switchToRegisterScreen,
                       text: "Sign up",
 
-                      style: TextStyle(
-                        fontStyle: .italic,
-                        color: AppColors.primaryBlue,
-                      ),
+                      style: TextStyle(fontStyle: .italic, color: AppColors.primaryBlue),
                     ),
                   ],
                 ),

@@ -161,7 +161,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       ? DateFormat('MM/dd/yyyy').format(timeSent)
                       : DateFormat('HH:mm').format(timeSent);
 
-                  final unreadAsync = ref.watch(unreadCountProvider(conversation.id));
+                  // final unreadAsync = ref.watch(unreadCountProvider(conversation.id));
 
                   return ListTile(
                     onTap: () => Navigator.pushNamed(
@@ -181,22 +181,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       context,
                     ).textTheme.bodyMedium?.copyWith(fontWeight: AppFontWeight.regular),
 
-                    trailing: unreadAsync.whenOrNull(
-                      data: (count) => Column(
-                        mainAxisAlignment: .end,
-                        children: [
-                          Text(
-                            time,
-                            style: AppTextStyle.labelSmall.copyWith(
-                              fontWeight: count > 0 ? AppFontWeight.semiBold : AppFontWeight.medium,
-                              color: count > 0 ? AppColors.primaryBlue : Colors.grey.shade400,
-                            ),
-                          ),
+                    // trailing: unreadAsync.whenOrNull(
+                    //   data: (count) => Column(
+                    //     mainAxisAlignment: .end,
+                    //     children: [
+                    //       Text(
+                    //         time,
+                    //         style: AppTextStyle.labelSmall.copyWith(
+                    //           fontWeight: count > 0 ? AppFontWeight.semiBold : AppFontWeight.medium,
+                    //           color: count > 0 ? AppColors.primaryBlue : Colors.grey.shade400,
+                    //         ),
+                    //       ),
 
-                          count > 0 ? Badge(label: Text('$count')) : SizedBox.shrink(),
-                        ],
-                      ),
-                    ),
+                    //       count > 0 ? Badge(label: Text('$count')) : SizedBox.shrink(),
+                    //     ],
+                    //   ),
+                    // ),
                   );
                 },
               ),

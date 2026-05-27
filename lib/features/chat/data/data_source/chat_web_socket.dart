@@ -1,18 +1,24 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:realtime_chat_engine/core/config/network/dio_service.dart';
+import 'package:realtime_chat_engine/core/shared/constants.dart';
 import 'package:realtime_chat_engine/features/auth/data/data_source/auth_secure_storage.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:web_socket_channel/status.dart' as status;
 
-final chatWebSocketProvider = Provider((ref) => ChatWebSocket(ref.read(authSecureStorageProvider)));
+final chatWebSocketProvider = Provider((ref) {
+  return ChatWebSocket(ref.read(authSecureStorageProvider), ref.read(dioServiceProvider));
+});
 
 class ChatWebSocket {
   final AuthSecureStorage _authSecureStorage;
+  final DioService _dioService;
 
-  ChatWebSocket(this._authSecureStorage);
+  ChatWebSocket(this._authSecureStorage, this._dioService);
 
   WebSocketChannel? _channel;
   StreamController<Map<String, dynamic>>? _streamController;
@@ -34,17 +40,37 @@ class ChatWebSocket {
   Future<void> _connect() async {
     try {
       final token = await _authSecureStorage.getToken();
+      final host = Uri.parse(Constants.baseUrl).host;
       final uri = Uri(
-        scheme: 'ws',
-        host: 'localhost',
-        port: 3000,
+        scheme: kReleaseMode ? 'wss' : 'ws',
+        host: kReleaseMode ? host : 'localhost',
+        port: kDebugMode ? 3000 : null,
         queryParameters: {"token": token},
       );
+
+      debugPrint(
+        "\n-----------------------------------------------------------[🔗 WEBSOCKET CONNECTION]------------------------------------------------------------\n",
+      );
+      debugPrint("Websocket URL: ${uri.toString()}");
+      debugPrint(
+        "\n------------------------------------------------------------------------------------------------------------------------------------------------\n",
+      );
+
       _channel = WebSocketChannel.connect(uri);
-      await _channel?.ready;
+
+      try {
+        await _channel?.ready;
+      } on SocketException catch (e) {
+        debugPrint(e.message);
+        return;
+      } on WebSocketChannelException catch (e) {
+        debugPrint(e.message);
+        return;
+      }
+
       _isConnected = true;
       _reconnectAttempt = 0;
-      debugPrint("Connected to WebSocket server");
+      debugPrint("Connected to WebSocket server 🔗\n");
       _channel?.stream.listen(_onMessage, onError: _onError, onDone: _onDone, cancelOnError: false);
     } catch (e) {
       debugPrint("Failed to connect to WebSocket server: $e");
@@ -80,6 +106,9 @@ class ChatWebSocket {
   Future<void> _onMessage(dynamic raw) async {
     try {
       final Map<String, dynamic> data = jsonDecode(raw);
+      if (data['type'] == 'error') {
+        _onError(data);
+      }
       _streamController?.add(data);
     } catch (e) {
       debugPrint("Failed to decode message: $e");
@@ -88,7 +117,40 @@ class ChatWebSocket {
 
   Future<void> _onError(dynamic error) async {
     debugPrint("WebSocket error: $error");
+
+    if (error is Map<String, dynamic>) {
+      if (error['statusCode'] as int == 401) {
+        _refreshAuthToken();
+      }
+    }
+
     _isConnected = false;
+  }
+
+  Future<void> _refreshAuthToken() async {
+    final refreshToken = await _authSecureStorage.getRefreshToken();
+    debugPrint('[AuthInterceptor] refreshToken from storage: $refreshToken');
+
+    if (refreshToken == null) return;
+
+    try {
+      debugPrint('[AuthInterceptor] calling /auth/refresh...');
+
+      final response = await _dioService.dio.post(
+        "/auth/refresh",
+        data: {"refreshToken": refreshToken},
+      );
+
+      debugPrint('\n\n[AuthInterceptor] refresh response: ${response.data}');
+
+      final newToken = response.data["token"] as String;
+      final newRefresh = response.data["refreshToken"] as String;
+
+      await _authSecureStorage.saveToken(newToken, newRefresh);
+    } catch (e) {
+      debugPrint('[ChatWebSocket] refresh failed: $e');
+      // await onLogout?.call();  //TODO: find a way to log out without creating a circular dependency between the ChatWebSocket and AuthController
+    }
   }
 
   Future<void> _onDone() async {
@@ -115,8 +177,26 @@ class ChatWebSocket {
   Future<void> disconnect() async {
     _shouldReconnect = false;
     _isConnected = false;
-    await _channel?.sink.close(status.normalClosure);
-    _streamController?.close();
+
+    final channel = _channel;
+    _channel = null;
+
+    if (channel != null) {
+      try {
+        await channel.sink.close(status.normalClosure).timeout(const Duration(seconds: 2));
+      } catch (e) {
+        debugPrint("WebSocket close error (ignored): $e");
+      }
+    }
+
+    // Do not await close — Riverpod StreamProviders may still be subscribed
+    // (e.g. incomingMessageProvider) and close() waits for all listeners to cancel.
+    final controller = _streamController;
     _streamController = null;
+    if (controller != null && !controller.isClosed) {
+      controller.close();
+    }
+
+    debugPrint("WebSocket disconnect complete");
   }
 }

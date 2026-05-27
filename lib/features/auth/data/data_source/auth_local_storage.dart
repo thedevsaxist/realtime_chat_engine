@@ -15,11 +15,7 @@ class AuthLocalStorage {
   Future<void> saveUser(UserModel user) async {
     final db = await _helper.database;
     await db.delete('users');
-    await db.insert(
-      'users',
-      user.toJson(),
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    await db.insert('users', user.toJson(), conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   Future<UserModel?> getUser() async {
@@ -47,7 +43,7 @@ class AuthLocalStorage {
   Future<void> deleteUser() async {
     final db = await _helper.database;
     await db.delete('users');
-    await db.close();
-    _helper.resetDatabase();
+
+    debugPrint("User data cleared");
   }
 }

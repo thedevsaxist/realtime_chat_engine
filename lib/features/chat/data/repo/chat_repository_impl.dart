@@ -137,6 +137,8 @@ class ChatRepositoryImpl implements ChatRepository {
     try {
       await chatRoom.clearCache();
       await _conversationDao.clearAll();
+
+      debugPrint("Cached Chat history cleared");
     } catch (e) {
       throw Exception(e);
     }

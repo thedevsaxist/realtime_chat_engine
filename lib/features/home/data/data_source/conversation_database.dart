@@ -70,15 +70,24 @@ class ConversationDao {
 
     final conversations = <ConversationModel>[];
     for (final json in result) {
+      final conversationId = json['id'].toString();
+
       final participants = await db.query(
         'conversation_participants',
         where: 'conversationId = ?',
-        whereArgs: [json['id']],
+        whereArgs: [conversationId],
       );
-      conversations.add(ConversationModel.fromJson({
-        ...json,
-        'participants': participants,
-      }));
+
+      final messages = await db.query(
+        'messages',
+        where: 'conversationId = ?',
+        whereArgs: [conversationId],
+        orderBy: 'createdAt',
+      );
+
+      conversations.add(
+        ConversationModel.fromJson({...json, 'participants': participants, 'messages': messages}),
+      );
     }
     return conversations;
   }

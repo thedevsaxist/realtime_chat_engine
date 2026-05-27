@@ -11,6 +11,7 @@ import 'package:realtime_chat_engine/features/auth/domain/entities/register_req_
 import 'package:realtime_chat_engine/features/chat/domain/repositories/chat_repository.dart';
 import 'package:realtime_chat_engine/features/auth/data/data_source/auth_secure_storage.dart';
 import 'package:realtime_chat_engine/core/config/network/interceptors/auth_interceptors.dart';
+import 'package:realtime_chat_engine/core/shared/message_bus.dart';
 import 'package:realtime_chat_engine/features/auth/data/repository/auth_repository_impl.dart';
 
 final authControllerProvider = StateNotifierProvider<AuthController, AuthState>((ref) {
@@ -18,6 +19,8 @@ final authControllerProvider = StateNotifierProvider<AuthController, AuthState>(
 });
 
 sealed class AuthState {}
+
+class LoadingState extends AuthState {}
 
 class Authenticated extends AuthState {
   final String userId;
@@ -72,6 +75,7 @@ class AuthController extends StateNotifier<AuthState> {
     required String firstName,
     required String lastName,
   }) async {
+    state = LoadingState();
     try {
       final entity = RegisterReqEntity(
         email: email,
@@ -90,6 +94,7 @@ class AuthController extends StateNotifier<AuthState> {
         await _onAuthSuccess(response.user.id, response.token);
       }, (error) => state = AuthError(error.message));
     } catch (e) {
+      state = AuthError(e.toString());
       debugPrint("Couldn't register user $e");
     }
   }
@@ -99,11 +104,14 @@ class AuthController extends StateNotifier<AuthState> {
       state = Authenticated(userId: userId, token: token);
       _chatWebSocket.connect();
     } catch (e) {
+      state = AuthError(e.toString());
       debugPrint("Couldn't set success state $e");
     }
   }
 
   Future<void> login(String email, String password) async {
+    state = LoadingState();
+
     try {
       final result = await _authRepository.login(LoginReqEntity(email: email, password: password));
 
@@ -114,20 +122,43 @@ class AuthController extends StateNotifier<AuthState> {
 
       await _onAuthSuccess(result.user.id, result.token);
     } catch (e) {
+      state = AuthError(e.toString());
       debugPrint("Couldn't login $e");
     }
   }
 
   Future<void> logOut() async {
     debugPrint("Logging out");
+
+    // Update UI and tear down stream listeners before blocking cleanup.
+    state = UnAuthenticated();
+    ref.invalidate(incomingMessageProvider);
+    ref.invalidate(incomingReadReceiptProvider);
+
     try {
       await _chatWebSocket.disconnect();
-      await _authSecureStorage.deleteTokens();
-      await _authLocalStorage.deleteUser();
-      await _chatRepository.clearCache();
-      state = UnAuthenticated();
-    } catch (e) {
-      debugPrint("Couldn't clear cache $e");
+    } catch (e, st) {
+      debugPrint("Logout: disconnect failed: $e\n$st");
     }
+
+    try {
+      await _chatRepository.clearCache();
+    } catch (e, st) {
+      debugPrint("Logout: clearCache failed: $e\n$st");
+    }
+
+    try {
+      await _authSecureStorage.deleteTokens();
+    } catch (e, st) {
+      debugPrint("Logout: deleteTokens failed: $e\n$st");
+    }
+
+    try {
+      await _authLocalStorage.deleteUser();
+    } catch (e, st) {
+      debugPrint("Logout: deleteUser failed: $e\n$st");
+    }
+
+    debugPrint("Logout complete");
   }
 }

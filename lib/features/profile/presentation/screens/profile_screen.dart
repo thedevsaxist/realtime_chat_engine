@@ -109,18 +109,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 const Spacer(),
 
                 TextButton(
-                  onPressed: () async {
-                    print("1. Logout tapped");
-                    await ref.read(authControllerProvider.notifier).logOut();
-                    print("2. LogOut() completed");
-                    print("3. Auth state is now: ${ref.read(authControllerProvider)}");
-                    if (context.mounted) {
-                      print("4. Context is mounted, popping");
-                      Navigator.of(context).popUntil((route) => route.isFirst);
-                    } else {
-                      print("4. Context is NOT mounted");
-                    }
-                  },
+                  onPressed: () =>
+                      ref.read(authControllerProvider.notifier).logOut(),
                   child: Row(
                     spacing: 8,
                     mainAxisAlignment: .center,

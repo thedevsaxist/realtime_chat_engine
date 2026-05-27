@@ -60,5 +60,7 @@ class AuthSecureStorage {
     await db.delete("auth");
     await db.close();
     _database = null;
+
+    debugPrint("Cached tokens cleared");
   }
 }

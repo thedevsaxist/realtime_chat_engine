@@ -22,9 +22,10 @@ class ErrorState implements ProfileState {
       st = stackTrace ?? StackTrace.current;
 }
 
-final profileControllerProvider = StateNotifierProvider<ProfileController, ProfileState>((ref) {
-  return ProfileController(ref);
-});
+final profileControllerProvider =
+    StateNotifierProvider.autoDispose<ProfileController, ProfileState>(
+      (ref) => ProfileController(ref),
+    );
 
 class ProfileController extends StateNotifier<ProfileState> {
   final Ref ref;

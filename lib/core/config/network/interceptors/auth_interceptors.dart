@@ -5,7 +5,7 @@ import 'package:realtime_chat_engine/features/auth/data/data_source/auth_secure_
 class AuthInterceptor extends Interceptor {
   final Dio _dio;
   final Dio _refreshDio;
-  late final VoidCallback onLogout;
+  Future<void> Function()? onLogout;
   final AuthSecureStorage _authSecureStorage;
 
   AuthInterceptor(this._authSecureStorage, this._dio, this._refreshDio);
@@ -18,7 +18,6 @@ class AuthInterceptor extends Interceptor {
       options.headers["Authorization"] = "Bearer $token";
     }
 
-    debugPrint('Final headers: ${options.headers}');
     handler.next(options);
   }
 
@@ -58,7 +57,7 @@ class AuthInterceptor extends Interceptor {
       handler.resolve(retryResponse);
     } catch (e) {
       debugPrint('[AuthInterceptor] refresh failed: $e');
-      onLogout();
+      await onLogout?.call();
       handler.next(err);
     }
   }

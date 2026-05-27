@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
@@ -19,14 +20,10 @@ class DatabaseHelper {
 
   Future<Database> _initDB() async {
     final dbPath = await getDatabasesPath();
-    final path = join(dbPath, 'app.db'); // single file
+    final path = join(dbPath, 'app.db');
+    debugPrint("App database can be found at: $path");
 
-    return await openDatabase(
-      path,
-      version: 3,
-      onCreate: _onCreate,
-      onUpgrade: _onUpgrade,
-    );
+    return await openDatabase(path, version: 3, onCreate: _onCreate, onUpgrade: _onUpgrade);
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {

@@ -37,7 +37,7 @@ class ChatData {
   }
 }
 
-final chatControllerProvider = StateNotifierProvider.family<ChatController, ChatData, String>(
+final chatControllerProvider = StateNotifierProvider.family.autoDispose<ChatController, ChatData, String>(
   (ref, conversationId) => ChatController(ref, conversationId),
 );
 
@@ -89,7 +89,6 @@ class ChatController extends StateNotifier<ChatData> {
         .getMessages(conversationId)
         .then((value) {
           state = state.copyWith(messages: value.messages, user: user);
-          debugPrint(state.messages.length.toString());
         })
         .onError((error, stackTrace) {
           debugPrint(error.toString());

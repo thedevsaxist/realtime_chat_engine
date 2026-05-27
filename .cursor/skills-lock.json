@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "skills": {
+    "sentry-fix-issues": {
+      "source": "getsentry/sentry-for-ai",
+      "sourceType": "github",
+      "skillPath": "skills/sentry-fix-issues/SKILL.md",
+      "computedHash": "0ef2103f20d698acc56d856a07a372a0a68cb02bad654d0dacb4e2ffe87e98b5"
+    },
+    "sentry-flutter-sdk": {
+      "source": "getsentry/sentry-for-ai",
+      "sourceType": "github",
+      "skillPath": "skills/sentry-flutter-sdk/SKILL.md",
+      "computedHash": "2efdf0b1d74d367b7cf07702231d78b839846e5f69136bfe0a99b94d811255ec"
+    },
+    "sentry-workflow": {
+      "source": "getsentry/sentry-for-ai",
+      "sourceType": "github",
+      "skillPath": "skills/sentry-workflow/SKILL.md",
+      "computedHash": "00a62d74aa26a9007d74532ab405b16684386e59c4121a5496f0059206683c6e"
+    }
+  }
+}

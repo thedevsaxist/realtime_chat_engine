@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:realtime_chat_engine/core/shared/message_bus.dart';
@@ -53,6 +54,9 @@ class HomeController extends StateNotifier<HomeControllerState> {
   }
 
   void _init() async {
+    state = HomeControllerStateLoading();
+
+    debugPrint("Getting user [HomeController —> _init()]");
     final user = await _authLocalStorage.getUser();
 
     if (user == null) {
@@ -62,6 +66,8 @@ class HomeController extends StateNotifier<HomeControllerState> {
 
     try {
       final res = await _chatRepository.getConversations(user.id);
+
+      debugPrint("The conversation is this long ${res.conversations[0].messages?.length.toString()}");
 
       state = HomeControllerStateSuccess(res.conversations, UserEntity.fromModel(user));
     } catch (e, st) {
