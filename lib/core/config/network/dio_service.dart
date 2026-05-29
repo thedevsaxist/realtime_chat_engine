@@ -5,10 +5,12 @@ import 'package:realtime_chat_engine/features/auth/data/data_source/auth_secure_
 import 'package:riverpod/riverpod.dart';
 
 import 'interceptors/auth_interceptors.dart';
+import 'token_refresh_service.dart';
 
 class DioService {
   final Dio _dio;
   final AuthSecureStorage _authSecureStorage;
+  late final TokenRefreshService tokenRefresh;
 
   DioService(this._authSecureStorage)
     : _dio = Dio(
@@ -19,8 +21,9 @@ class DioService {
         ),
       ) {
     final refreshDio = Dio(BaseOptions(baseUrl: Constants.baseUrl));
+    tokenRefresh = TokenRefreshService(_authSecureStorage, refreshDio);
     _dio.interceptors.add(LoggingInterceptor());
-    _dio.interceptors.add(AuthInterceptor(_authSecureStorage, _dio, refreshDio));
+    _dio.interceptors.add(AuthInterceptor(_authSecureStorage, _dio, tokenRefresh));
   }
 
   Dio get dio => _dio;

@@ -128,25 +128,8 @@ class ChatWebSocket {
   }
 
   Future<void> _refreshAuthToken() async {
-    final refreshToken = await _authSecureStorage.getRefreshToken();
-    debugPrint('[AuthInterceptor] refreshToken from storage: $refreshToken');
-
-    if (refreshToken == null) return;
-
     try {
-      debugPrint('[AuthInterceptor] calling /auth/refresh...');
-
-      final response = await _dioService.dio.post(
-        "/auth/refresh",
-        data: {"refreshToken": refreshToken},
-      );
-
-      debugPrint('\n\n[AuthInterceptor] refresh response: ${response.data}');
-
-      final newToken = response.data["token"] as String;
-      final newRefresh = response.data["refreshToken"] as String;
-
-      await _authSecureStorage.saveToken(newToken, newRefresh);
+      await _dioService.tokenRefresh.refresh();
     } catch (e) {
       debugPrint('[ChatWebSocket] refresh failed: $e');
       // await onLogout?.call();  //TODO: find a way to log out without creating a circular dependency between the ChatWebSocket and AuthController

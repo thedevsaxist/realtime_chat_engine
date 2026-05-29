@@ -25,7 +25,7 @@ class ChatClient {
 
   Future<int> getUnreadCount({required String conversationId}) async {
     final response = await _dioService.dio.get(
-      "/conversation/unread",
+      "/conversations/unread",
       queryParameters: {'conversationId': conversationId},
     );
 

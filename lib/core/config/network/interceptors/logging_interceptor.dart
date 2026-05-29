@@ -6,7 +6,7 @@ class LoggingInterceptor extends Interceptor {
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
     super.onRequest(options, handler);
 
-    debugPrint("REQUEST:\n${options.method} ${options.baseUrl}${options.path}");
+    debugPrint("REQUEST:\n${options.method} ${options.uri}");
     
     if (options.headers.isNotEmpty){
       debugPrint("Headers:\n${options.headers}");

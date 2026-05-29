@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:realtime_chat_engine/core/theme/app_colors.dart';
 import 'package:realtime_chat_engine/core/theme/app_spacing.dart';
 import 'package:realtime_chat_engine/core/theme/font_weights.dart';
-import 'package:realtime_chat_engine/core/theme/padding_styles.dart';
 import 'package:realtime_chat_engine/core/theme/radius_styles.dart';
 import 'package:realtime_chat_engine/core/theme/text_styles.dart';
 import 'package:realtime_chat_engine/features/chat/presentation/widget/chat_bubble.dart';
@@ -22,41 +21,45 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with WidgetsBindingObse
   final TextEditingController messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
+  late final ChatController _chatController;
   bool _showScrollButton = false;
 
   @override
   void initState() {
     super.initState();
+    _chatController = ref.read(chatControllerProvider(widget.conversationId).notifier);
     WidgetsBinding.instance.addObserver(this);
     _scrollController.addListener(_onScroll);
 
     _scrollController.addListener(() {
+      if (!_scrollController.hasClients) return;
       final isAway = _scrollController.position.maxScrollExtent - _scrollController.offset > 200;
       if (isAway != _showScrollButton) setState(() => _showScrollButton = isAway);
     });
+
+    messageController.addListener(() => setState(() {}));
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // Re-mark when user comes back to the app
-    if (state == AppLifecycleState.resumed) _markAsRead();
+    if (state == AppLifecycleState.resumed) _markAsReadIfViewing();
+  }
+
+  bool get _isViewingLatest {
+    if (!_scrollController.hasClients) return true;
+    final position = _scrollController.position;
+    final nearBottom = position.maxScrollExtent - position.pixels < 200;
+    final nearTop = position.pixels < 200;
+    return nearBottom || nearTop;
   }
 
   void _onScroll() {
-    final currentPosition = _scrollController.position;
-    if (currentPosition.pixels == 0) _markAsRead;
+    if (_isViewingLatest) _markAsReadIfViewing();
   }
 
-  void _markAsRead() {
-    final messages = ref.read(chatControllerProvider(widget.conversationId)).messages;
-    final lastMessage = messages.firstOrNull;
-    if (lastMessage == null) return;
-
-    debugPrint("Marking as read: $lastMessage...");
-
-    ref
-        .read(chatControllerProvider(widget.conversationId).notifier)
-        .markAsRead(lastMessageId: lastMessage.id);
+  void _markAsReadIfViewing() {
+    if (!_isViewingLatest) return;
+    _chatController.markLatestAsRead();
   }
 
   void _scrollToBottom() {
@@ -69,7 +72,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with WidgetsBindingObse
 
   @override
   void dispose() {
+    _chatController.markLatestAsRead();
     WidgetsBinding.instance.removeObserver(this);
+    messageController.dispose();
     _scrollController.dispose();
     super.dispose();
   }
@@ -79,13 +84,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with WidgetsBindingObse
     final state = ref.watch(chatControllerProvider(widget.conversationId));
 
     ref.listen(
-      chatControllerProvider(widget.conversationId).select((state) {
-        return state.messages.length;
-      }),
+      chatControllerProvider(widget.conversationId).select((state) => state.messages.length),
       (prev, next) {
-        if (next > (prev ?? 0)) {
-          WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
-        }
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (next > (prev ?? 0)) _scrollToBottom();
+          _markAsReadIfViewing();
+        });
       },
     );
 
@@ -187,28 +191,34 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with WidgetsBindingObse
                   hintStyle: Theme.of(
                     context,
                   ).textTheme.bodyMedium?.copyWith(color: AppColors.textColorGray),
-                  contentPadding: AppPaddingStyles.paddingH8V4,
+                  contentPadding: EdgeInsets.fromLTRB(12, 16, 0, 0),
                   filled: true,
                   fillColor: AppColors.textFieldColor,
-                  suffix: GestureDetector(
-                    onTap: () {
-                      ref
-                          .read(chatControllerProvider(widget.conversationId).notifier)
-                          .sendMessage(messageController.text);
+                  suffixIcon: messageController.text.isNotEmpty
+                      ? Align(
+                          widthFactor: 1,
+                          heightFactor: 1,
+                          alignment: .bottomCenter,
+                          child: IconButton.filled(
+                            onPressed: () {
+                              ref
+                                  .read(chatControllerProvider(widget.conversationId).notifier)
+                                  .sendMessage(messageController.text.trim());
 
-                      messageController.clear();
-                    },
-
-                    child: Icon(Icons.send),
-                  ),
+                              messageController.clear();
+                            },
+                            icon: Icon(Icons.arrow_upward),
+                          ),
+                        )
+                      : null,
                   border: OutlineInputBorder(borderSide: .none, borderRadius: AppRadiusStyles.full),
                   enabledBorder: OutlineInputBorder(
                     borderSide: .none,
-                    borderRadius: AppRadiusStyles.borderRadius12,
+                    borderRadius: AppRadiusStyles.borderRadius24,
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderSide: .none,
-                    borderRadius: AppRadiusStyles.borderRadius12,
+                    borderRadius: AppRadiusStyles.borderRadius24,
                   ),
                 ),
               ),

@@ -37,19 +37,26 @@ class ChatData {
   }
 }
 
-final chatControllerProvider = StateNotifierProvider.family.autoDispose<ChatController, ChatData, String>(
-  (ref, conversationId) => ChatController(ref, conversationId),
-);
+final chatControllerProvider = StateNotifierProvider.family
+    .autoDispose<ChatController, ChatData, String>(
+      (ref, conversationId) => ChatController(ref, conversationId),
+    );
 
 // unread count — family so each conversation has its own count
-final unreadCountProvider = FutureProvider.family<int, String>((ref, conversationId) {
-  return ref.read(chatRepositoryProvider).getUnreadCount(conversationId: conversationId);
+final unreadCountProvider = FutureProvider.family.autoDispose<int, String>((ref, conversationId) {
+  final unreadCount = ref
+      .read(chatRepositoryProvider)
+      .getUnreadCount(conversationId: conversationId);
+
+  debugPrint(unreadCount.toString());
+  return unreadCount;
 });
 
 class ChatController extends StateNotifier<ChatData> {
   final Ref ref;
   final String conversationId;
   String? _userId;
+  String? _lastMarkedMessageId;
   static const _uuid = Uuid();
   late final ChatRepository _chatRepository;
   late final ChatWebSocket _chatWebSocket;
@@ -89,11 +96,28 @@ class ChatController extends StateNotifier<ChatData> {
         .getMessages(conversationId)
         .then((value) {
           state = state.copyWith(messages: value.messages, user: user);
+          markLatestAsRead();
         })
         .onError((error, stackTrace) {
           debugPrint(error.toString());
           state = state.copyWith(messages: [], user: user);
         });
+  }
+
+  /// Latest message with a server-persisted id (skips unacked optimistic sends).
+  String? get latestPersistedMessageId {
+    MessageEntity? latest;
+    for (final message in state.messages) {
+      if (_isPendingMessage(message)) continue;
+      if (latest == null || message.createdAt.isAfter(latest.createdAt)) {
+        latest = message;
+      }
+    }
+    return latest?.id;
+  }
+
+  bool _isPendingMessage(MessageEntity message) {
+    return state.messages.any((other) => other.tempId == message.id);
   }
 
   void _handleIncoming(MessageEntity incoming) {
@@ -113,7 +137,7 @@ class ChatController extends StateNotifier<ChatData> {
     }
   }
 
-  void _handleReadReceipt(ReadReceiptEntity receipt){
+  void _handleReadReceipt(ReadReceiptEntity receipt) {
     // ignore receipts for other conversations
     if (receipt.conversationId != conversationId) return;
 
@@ -157,14 +181,22 @@ class ChatController extends StateNotifier<ChatData> {
     }
   }
 
-  Future<void> markAsRead({required String lastMessageId}) async {
-    final result = await ref
-        .read(chatRepositoryProvider)
-        .markAsRead(conversationId: conversationId, lastMessageId: lastMessageId);
+  Future<void> markLatestAsRead() async {
+    final lastMessageId = latestPersistedMessageId;
+    if (lastMessageId == null || lastMessageId == _lastMarkedMessageId) return;
 
-    if (result.success) {
-      // invalidate so the badge re-fetches
-      ref.invalidate(unreadCountProvider(conversationId));
+    try {
+      final result = await _chatRepository.markAsRead(
+        conversationId: conversationId,
+        lastMessageId: lastMessageId,
+      );
+
+      if (result.success) {
+        _lastMarkedMessageId = lastMessageId;
+        ref.invalidate(unreadCountProvider(conversationId));
+      }
+    } catch (e, st) {
+      debugPrint('markLatestAsRead failed: $e\n$st');
     }
   }
 
