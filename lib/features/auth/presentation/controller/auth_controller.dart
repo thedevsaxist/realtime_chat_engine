@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:realtime_chat_engine/core/config/network/dio_service.dart';
+import 'package:realtime_chat_engine/core/providers/incoming_message_provider.dart';
+import 'package:realtime_chat_engine/core/providers/incoming_read_receipt_provider.dart';
 import 'package:realtime_chat_engine/features/chat/data/repo/chat_repository_impl.dart';
 import 'package:realtime_chat_engine/features/chat/data/data_source/chat_web_socket.dart';
 import 'package:realtime_chat_engine/features/auth/domain/entities/login_req_entity.dart';
@@ -11,7 +13,6 @@ import 'package:realtime_chat_engine/features/auth/domain/entities/register_req_
 import 'package:realtime_chat_engine/features/chat/domain/repositories/chat_repository.dart';
 import 'package:realtime_chat_engine/features/auth/data/data_source/auth_secure_storage.dart';
 import 'package:realtime_chat_engine/core/config/network/interceptors/auth_interceptors.dart';
-import 'package:realtime_chat_engine/core/shared/message_bus.dart';
 import 'package:realtime_chat_engine/features/auth/data/repository/auth_repository_impl.dart';
 
 final authControllerProvider = StateNotifierProvider<AuthController, AuthState>((ref) {

@@ -132,7 +132,6 @@ class ChatWebSocket {
       await _dioService.tokenRefresh.refresh();
     } catch (e) {
       debugPrint('[ChatWebSocket] refresh failed: $e');
-      // await onLogout?.call();  //TODO: find a way to log out without creating a circular dependency between the ChatWebSocket and AuthController
     }
   }
 

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:realtime_chat_engine/core/shared/message_bus.dart';
+import 'package:realtime_chat_engine/core/providers/incoming_message_provider.dart';
+import 'package:realtime_chat_engine/core/providers/incoming_read_receipt_provider.dart';
+import 'package:realtime_chat_engine/core/providers/unread_provider.dart';
 import 'package:realtime_chat_engine/features/auth/data/data_source/auth_local_storage.dart';
+import 'package:realtime_chat_engine/features/auth/data/models/user_model.dart';
 import 'package:realtime_chat_engine/features/chat/domain/entities/read_receipt_entity.dart';
 import 'package:realtime_chat_engine/features/home/domain/entities/message_entity.dart';
 import 'package:realtime_chat_engine/features/chat/data/repo/chat_repository_impl.dart';
@@ -11,7 +14,6 @@ import 'package:realtime_chat_engine/features/chat/data/data_source/chat_web_soc
 import 'package:riverpod/legacy.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../../auth/data/models/user_model.dart';
 
 class ChatData {
   final List<MessageEntity> messages;
@@ -41,36 +43,6 @@ final chatControllerProvider = StateNotifierProvider.family
     .autoDispose<ChatController, ChatData, String>(
       (ref, conversationId) => ChatController(ref, conversationId),
     );
-
-// unread count — family so each conversation has its own count (local DB)
-final unreadCountProvider = FutureProvider.family.autoDispose<int, String>((
-  ref,
-  conversationId,
-) async {
-  // Invalidate when a new message arrives in this conversation
-  ref.listen(incomingMessageProvider, (_, next) {
-    next.whenData((message) {
-      if (message.conversationId == conversationId) {
-        ref.invalidateSelf();
-      }
-    });
-  });
-
-  ref.listen(incomingReadReceiptProvider, (_, next) {
-    next.whenData((receipt) {
-      if (receipt.conversationId == conversationId) {
-        ref.invalidateSelf();
-      }
-    });
-  });
-
-  final user = await ref.read(authLocalStorageProvider).getUser('unreadCountProvider');
-  if (user == null || user.id.isEmpty) return 0;
-
-  return ref
-      .read(chatRepositoryProvider)
-      .getUnreadCount(conversationId: conversationId, userId: user.id);
-});
 
 class ChatController extends StateNotifier<ChatData> {
   final Ref ref;

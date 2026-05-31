@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:realtime_chat_engine/core/shared/message_bus.dart';
-import 'package:realtime_chat_engine/features/chat/presentation/controller/chat_controller.dart';
+import 'package:realtime_chat_engine/core/providers/incoming_message_provider.dart';
+import 'package:realtime_chat_engine/core/providers/unread_provider.dart';
 import 'package:realtime_chat_engine/features/auth/domain/entities/user_entity.dart';
 import 'package:realtime_chat_engine/features/home/domain/entities/message_entity.dart';
 import 'package:realtime_chat_engine/features/chat/data/repo/chat_repository_impl.dart';

@@ -13,7 +13,7 @@ import 'package:realtime_chat_engine/features/chat/domain/entities/mark_as_read_
 import 'package:realtime_chat_engine/features/chat/domain/entities/delete_messages_req_entity.dart';
 import 'package:realtime_chat_engine/features/home/domain/entities/get_conversations_res_entity.dart';
 import 'package:realtime_chat_engine/features/chat/domain/entities/create_conversation_req_entity.dart';
-import 'package:realtime_chat_engine/features/chat/domain/read_state_utils.dart';
+import 'package:realtime_chat_engine/core/utils/read_state_utils.dart';
 
 class ChatRepositoryImpl implements ChatRepository {
   final ChatClient chatClient;
