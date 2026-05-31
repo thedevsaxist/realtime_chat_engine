@@ -1,45 +1,30 @@
 import 'package:flutter/widgets.dart';
 
-class AppSpacing {
-  /// Height of 2px
-  static final xxsh = SizedBox(height: 2);
+final class AppSpacing extends SizedBox {
+  const AppSpacing.height2({super.key}) : super(height: _spacingXXXs);
+  const AppSpacing.height4({super.key}) : super(height: _spacingXXs);
+  const AppSpacing.height8({super.key}) : super(height: _spacingXs);
+  const AppSpacing.height10({super.key}) : super(height: _spacingS);
+  const AppSpacing.height16({super.key}) : super(height: _spacingM);
+  const AppSpacing.height20({super.key}) : super(height: _spacingL);
+  const AppSpacing.height24({super.key}) : super(height: _spacingXl);
+  const AppSpacing.height32({super.key}) : super(height: _spacingXXl);
 
-  /// Height of 4px
-  static final xsh = SizedBox(height: 4);
+  const AppSpacing.width2({super.key}) : super(width: _spacingXXXs);
+  const AppSpacing.width4({super.key}) : super(width: _spacingXXs);
+  const AppSpacing.width8({super.key}) : super(width: _spacingXs);
+  const AppSpacing.width10({super.key}) : super(width: _spacingS);
+  const AppSpacing.width16({super.key}) : super(width: _spacingM);
+  const AppSpacing.width20({super.key}) : super(width: _spacingL);
+  const AppSpacing.width24({super.key}) : super(width: _spacingXl);
+  const AppSpacing.width32({super.key}) : super(width: _spacingXXl);
 
-  /// Height of 8px
-  static final sh = SizedBox(height: 8);
-
-  /// Height of 16px
-  static final mh = SizedBox(height: 16);
-
-  /// Height of 20px
-  static final lmh = SizedBox(height: 20);
-
-  /// Height of 24px
-  static final lh = SizedBox(height: 24);
-
-  /// Height of 32px
-  static final xlh = SizedBox(height: 32);
-
-  /// Width of 2px
-  static final xxsw = SizedBox(width: 2);
-
-  /// Width of 4px
-  static final xsw = SizedBox(width: 4);
-
-  /// Width of 8px
-  static final sw = SizedBox(width: 8);
-
-  /// Width of 16px
-  static final mw = SizedBox(width: 16);
-
-  /// Width of 20px
-  static final lmw = SizedBox(width: 20);
-
-  /// Width of 24px
-  static final lw = SizedBox(width: 24);
-
-  /// Width of 32px
-  static final xlw = SizedBox(width: 32);
+  static const double _spacingXXXs = 2;
+  static const double _spacingXXs = 4;
+  static const double _spacingXs = 8;
+  static const double _spacingS = 10;
+  static const double _spacingM = 16;
+  static const double _spacingL = 20;
+  static const double _spacingXl = 24;
+  static const double _spacingXXl = 32;
 }

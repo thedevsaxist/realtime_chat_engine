@@ -2,9 +2,12 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:realtime_chat_engine/core/utils/preload_fonts.dart';
 
 Future<void> bootstrap() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await preloadFonts();
 
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(

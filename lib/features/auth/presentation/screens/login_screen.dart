@@ -1,7 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:realtime_chat_engine/core/theme/app_colors.dart';
+import 'package:realtime_chat_engine/core/theme/app_theme_extension.dart';
 import 'package:realtime_chat_engine/core/theme/font_weights.dart';
 
 import '../controller/auth_controller.dart';
@@ -123,7 +123,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       recognizer: _switchToRegisterScreen,
                       text: "Sign up",
 
-                      style: TextStyle(fontStyle: .italic, color: AppColors.primaryBlue),
+                      style: TextStyle(fontStyle: .italic, color: context.appTheme.brandPrimary),
                     ),
                   ],
                 ),

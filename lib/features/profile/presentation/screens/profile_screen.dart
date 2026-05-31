@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:realtime_chat_engine/core/theme/app_colors.dart';
 import 'package:realtime_chat_engine/core/theme/app_spacing.dart';
+import 'package:realtime_chat_engine/core/theme/app_theme_extension.dart';
 import 'package:realtime_chat_engine/core/theme/font_weights.dart';
-import 'package:realtime_chat_engine/core/theme/text_styles.dart';
+import 'package:realtime_chat_engine/core/theme/app_text_styles.dart';
 import 'package:realtime_chat_engine/features/auth/presentation/controller/auth_controller.dart';
 import 'package:realtime_chat_engine/features/profile/presentation/controller/profile_controller.dart';
 import 'package:realtime_chat_engine/features/profile/presentation/widgets/settings_tile.dart';
@@ -51,7 +51,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   ),
                 ),
 
-                AppSpacing.sh,
+                AppSpacing.height8(),
 
                 Text(
                   "${state.userDetails.firstName} ${state.userDetails.lastName}",
@@ -63,17 +63,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
                 Text(
                   state.userDetails.email,
-                  style: AppTextStyle.bodyMedium.copyWith(color: AppColors.neutral500),
+                  style: AppTextStyle.bodyMedium.copyWith(color: context.appTheme.neutral500),
                 ),
 
-                AppSpacing.xlh,
+                AppSpacing.height24(),
 
                 Align(
                   alignment: .centerLeft,
                   child: Text(
                     "Settings",
                     style: AppTextStyle.labelLarge.copyWith(
-                      color: AppColors.neutral500,
+                      color: context.appTheme.neutral500,
                       letterSpacing: 0,
                     ),
                   ),
@@ -109,8 +109,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 const Spacer(),
 
                 TextButton(
-                  onPressed: () =>
-                      ref.read(authControllerProvider.notifier).logOut(),
+                  onPressed: () => ref.read(authControllerProvider.notifier).logOut(),
                   child: Row(
                     spacing: 8,
                     mainAxisAlignment: .center,
@@ -118,17 +117,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       Text(
                         "Log out",
                         style: AppTextStyle.titleMedium.copyWith(
-                          color: AppColors.error,
+                          color: context.colorScheme.error,
                           letterSpacing: -1,
                         ),
                       ),
 
-                      Icon(Icons.logout, color: AppColors.error),
+                      Icon(Icons.logout, color: context.colorScheme.error),
                     ],
                   ),
                 ),
 
-                AppSpacing.mh,
+                AppSpacing.height16(),
               ],
             ),
           ),

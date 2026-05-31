@@ -5,9 +5,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:realtime_chat_engine/core/providers/unread_provider.dart';
-import 'package:realtime_chat_engine/core/theme/app_colors.dart';
+
+import 'package:realtime_chat_engine/core/theme/app_theme_extension.dart';
 import 'package:realtime_chat_engine/core/theme/font_weights.dart';
-import 'package:realtime_chat_engine/core/theme/text_styles.dart';
+import 'package:realtime_chat_engine/core/theme/app_text_styles.dart';
 import 'package:realtime_chat_engine/features/home/domain/entities/conversation_entity.dart';
 import 'package:realtime_chat_engine/features/home/presentation/screens/available_users.dart';
 import 'package:realtime_chat_engine/features/home/presentation/controller/home_controller.dart';
@@ -94,7 +95,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               iconSize: 22,
               padding: .zero,
               constraints: .tight(.fromRadius(16)),
-              icon: Icon(Icons.add),
+              icon: Icon(Icons.add, color: context.colorScheme.onPrimary),
               onPressed: () {
                 showCupertinoSheet(
                   context: context,
@@ -191,12 +192,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             time,
                             style: AppTextStyle.labelSmall.copyWith(
                               fontWeight: count > 0 ? AppFontWeight.semiBold : AppFontWeight.medium,
-                              color: count > 0 ? AppColors.primaryBlue : Colors.grey.shade400,
+                              color: count > 0
+                                  ? context.appTheme.brandPrimary
+                                  : context.colorScheme.onSurfaceVariant,
                             ),
                           ),
 
                           count > 0
-                              ? Badge(label: Text('$count'), backgroundColor: AppColors.primaryBlue)
+                              ? Badge(
+                                  label: Text('$count'),
+                                  backgroundColor: context.appTheme.brandPrimary,
+                                )
                               : SizedBox.shrink(),
                         ],
                       ),

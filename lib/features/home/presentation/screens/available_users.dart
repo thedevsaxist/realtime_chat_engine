@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:realtime_chat_engine/core/theme/font_weights.dart';
-import 'package:realtime_chat_engine/core/theme/text_styles.dart';
+import 'package:realtime_chat_engine/core/theme/app_text_styles.dart';
 
 import '../controller/available_users_controller.dart';
 

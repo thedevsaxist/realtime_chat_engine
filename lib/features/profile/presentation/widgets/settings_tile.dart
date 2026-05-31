@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:realtime_chat_engine/core/theme/app_colors.dart';
+import 'package:realtime_chat_engine/core/theme/app_theme_extension.dart';
 import 'package:realtime_chat_engine/core/theme/font_weights.dart';
-import 'package:realtime_chat_engine/core/theme/text_styles.dart';
+import 'package:realtime_chat_engine/core/theme/app_text_styles.dart';
 
 class SettingsTile extends StatelessWidget {
   final String title;
@@ -26,7 +26,7 @@ class SettingsTile extends StatelessWidget {
       subtitle: Text(
         subTitle,
         style: AppTextStyle.labelLarge.copyWith(
-          color: AppColors.neutral500,
+          color: context.appTheme.neutral500,
           fontWeight: AppFontWeight.light,
         ),
       ),

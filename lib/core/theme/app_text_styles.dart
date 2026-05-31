@@ -2,9 +2,10 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:realtime_chat_engine/core/theme/app_colors.dart';
 
-class AppTextStyle {
+final class AppTextStyle {
+  AppTextStyle._();
+
   static final _isIOS = Platform.isIOS;
   static final _fallbackFontFamily = GoogleFonts.inter().fontFamily;
   static final String? fontFamily = _isIOS ? 'SFProRounded' : _fallbackFontFamily;
@@ -81,7 +82,6 @@ class AppTextStyle {
     fontSize: 14,
     height: 1.2,
     letterSpacing: .1,
-    color: AppColors.neutral500,
   );
 
   static final TextStyle labelMedium = TextStyle(
@@ -90,7 +90,6 @@ class AppTextStyle {
     fontSize: 12,
     height: 1.2,
     letterSpacing: .1,
-    color: AppColors.neutral500,
   );
 
   static final TextStyle labelSmall = TextStyle(
@@ -99,7 +98,6 @@ class AppTextStyle {
     fontSize: 11,
     height: 1.2,
     letterSpacing: .1,
-    color: AppColors.neutral500,
   );
 
   static final TextStyle bodyLarge = TextStyle(
@@ -108,7 +106,6 @@ class AppTextStyle {
     fontSize: 16,
     height: 1.1,
     letterSpacing: 0,
-    color: AppColors.neutral900,
   );
 
   static final TextStyle bodyMedium = TextStyle(
@@ -117,7 +114,6 @@ class AppTextStyle {
     fontSize: 14,
     height: 1.1,
     letterSpacing: 0,
-    color: AppColors.neutral700,
   );
 
   static final TextStyle bodySmall = TextStyle(
@@ -126,6 +122,23 @@ class AppTextStyle {
     fontSize: 12,
     height: 1.1,
     letterSpacing: 0,
-    color: AppColors.neutral500,
+  );
+
+  static TextTheme get textTheme => TextTheme(
+    displayLarge: displayLarge,
+    displayMedium: displayMedium,
+    displaySmall: displaySmall,
+    headlineLarge: headlineLarge,
+    headlineMedium: headlineMedium,
+    headlineSmall: headlineSmall,
+    titleLarge: titleLarge,
+    titleMedium: titleMedium,
+    titleSmall: titleSmall,
+    bodyLarge: bodyLarge,
+    bodyMedium: bodyMedium,
+    bodySmall: bodySmall,
+    labelLarge: labelLarge,
+    labelMedium: labelMedium,
+    labelSmall: labelSmall,
   );
 }

@@ -1,46 +1,54 @@
 import 'package:flutter/material.dart';
-import 'package:realtime_chat_engine/core/theme/app_colors.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:realtime_chat_engine/core/theme/app_theme_extension.dart';
 
-import 'text_styles.dart';
+import 'app_color_scheme.dart';
+import 'app_text_styles.dart';
 
-class AppTheme {
+final class AppTheme {
+  AppTheme._();
+
   static ThemeData get light {
+    final scheme = AppColorScheme.light;
     return ThemeData(
-      brightness: Brightness.light,
-      primaryColor: AppColors.primaryBlue,
-      scaffoldBackgroundColor: Colors.white,
       useMaterial3: true,
-      colorScheme: ColorScheme.light(
-        primary: AppColors.primaryBlue,
-        onPrimary: AppColors.neutral100,
-        outline: AppColors.neutral500,
-      ),
-
+      colorScheme: scheme,
+      fontFamily: GoogleFonts.inter().fontFamily,
       popupMenuTheme: PopupMenuThemeData(
         shape: RoundedRectangleBorder(borderRadius: BorderRadiusGeometry.circular(16)),
         menuPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 2),
         enableFeedback: true,
         position: PopupMenuPosition.under,
-        color: AppColors.neutral100,
       ),
 
-      textTheme: TextTheme(
-        titleLarge: AppTextStyle.titleLarge,
-        titleMedium: AppTextStyle.titleMedium,
-        titleSmall: AppTextStyle.titleSmall,
-        bodyLarge: AppTextStyle.bodyLarge,
-        bodyMedium: AppTextStyle.bodyMedium,
-        bodySmall: AppTextStyle.bodySmall,
-        displayLarge: AppTextStyle.displayLarge,
-        displayMedium: AppTextStyle.displayMedium,
-        displaySmall: AppTextStyle.displaySmall,
-        headlineLarge: AppTextStyle.headlineLarge,
-        headlineMedium: AppTextStyle.headlineMedium,
-        headlineSmall: AppTextStyle.headlineSmall,
-        labelLarge: AppTextStyle.labelLarge,
-        labelMedium: AppTextStyle.labelMedium,
-        labelSmall: AppTextStyle.labelSmall,
+      textTheme: AppTextStyle.textTheme.apply(
+        bodyColor: scheme.onSurface,
+        displayColor: scheme.onSurface,
       ),
+
+      extensions: <ThemeExtension<dynamic>>[AppThemeExtension.light],
+    );
+  }
+
+  static ThemeData get dark {
+    final scheme = AppColorScheme.dark;
+    return ThemeData(
+      useMaterial3: true,
+      colorScheme: scheme,
+      fontFamily: GoogleFonts.inter().fontFamily,
+      popupMenuTheme: PopupMenuThemeData(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadiusGeometry.circular(16)),
+        menuPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+        enableFeedback: true,
+        position: PopupMenuPosition.under,
+      ),
+
+      textTheme: AppTextStyle.textTheme.apply(
+        bodyColor: scheme.onSurface,
+        displayColor: scheme.onSurface,
+      ),
+
+      extensions: <ThemeExtension<dynamic>>[AppThemeExtension.dark],
     );
   }
 }

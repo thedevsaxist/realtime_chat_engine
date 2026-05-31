@@ -30,7 +30,7 @@ final class _ChatScreenBody extends ConsumerWidget {
                 Positioned.fill(
                   child: ListView.separated(
                     controller: scrollController,
-                    separatorBuilder: (context, index) => AppSpacing.sh,
+                    separatorBuilder: (context, index) => AppSpacing.height8(),
                     itemCount: state.messages.length,
                     itemBuilder: (context, index) {
                       final data = state.messages[index];
@@ -40,8 +40,8 @@ final class _ChatScreenBody extends ConsumerWidget {
                           conversationId: conversationId,
                           data: data,
                           alignment: Alignment.centerLeft,
-                          bubbleColor: AppColors.grayBubble,
-                          textColor: AppColors.neutral900,
+                          bubbleColor: context.appTheme.grayBubble,
+                          textColor: context.colorScheme.onSurface,
                           currentUserId: state.user.id,
                         );
                       }
@@ -51,8 +51,8 @@ final class _ChatScreenBody extends ConsumerWidget {
                           conversationId: conversationId,
                           data: data,
                           alignment: Alignment.centerRight,
-                          bubbleColor: AppColors.primaryBlue,
-                          textColor: AppColors.neutral100,
+                          bubbleColor: context.colorScheme.primary,
+                          textColor: context.colorScheme.onPrimary,
                           currentUserId: state.user.id,
                         );
                       }
@@ -78,7 +78,7 @@ final class _ChatScreenBody extends ConsumerWidget {
             ),
           ),
 
-          AppSpacing.mh,
+          AppSpacing.height16(),
 
           TextField(
             maxLines: 4,
@@ -89,10 +89,10 @@ final class _ChatScreenBody extends ConsumerWidget {
               hintText: "Type a message",
               hintStyle: Theme.of(
                 context,
-              ).textTheme.bodyMedium?.copyWith(color: AppColors.textColorGray),
+              ).textTheme.bodyMedium?.copyWith(color: context.appTheme.textColorGray),
               contentPadding: EdgeInsets.fromLTRB(12, 16, 0, 0),
               filled: true,
-              fillColor: AppColors.textFieldColor,
+              fillColor: context.appTheme.textFieldColor,
               suffixIcon: messageController.text.isNotEmpty
                   ? Align(
                       widthFactor: 1,
@@ -110,14 +110,14 @@ final class _ChatScreenBody extends ConsumerWidget {
                       ),
                     )
                   : null,
-              border: OutlineInputBorder(borderSide: .none, borderRadius: AppRadiusStyles.full),
+              border: OutlineInputBorder(borderSide: .none, borderRadius: AppRadius.circle),
               enabledBorder: OutlineInputBorder(
                 borderSide: .none,
-                borderRadius: AppRadiusStyles.borderRadius24,
+                borderRadius: AppRadius.circular24,
               ),
               focusedBorder: OutlineInputBorder(
                 borderSide: .none,
-                borderRadius: AppRadiusStyles.borderRadius24,
+                borderRadius: AppRadius.circular24,
               ),
             ),
           ),

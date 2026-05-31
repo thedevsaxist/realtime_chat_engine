@@ -1,7 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:realtime_chat_engine/core/theme/app_colors.dart';
+import 'package:realtime_chat_engine/core/theme/app_theme_extension.dart';
 import 'package:realtime_chat_engine/core/theme/font_weights.dart';
 import 'package:realtime_chat_engine/features/auth/presentation/widget/auth_text_field.dart';
 
@@ -135,7 +135,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     TextSpan(
                       recognizer: _switchToLoginScreen,
                       text: "Login",
-                      style: TextStyle(fontStyle: .italic, color: AppColors.primaryBlue),
+                      style: TextStyle(fontStyle: .italic, color: context.appTheme.brandPrimary),
                     ),
                   ],
                 ),

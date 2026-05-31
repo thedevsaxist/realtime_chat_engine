@@ -54,9 +54,9 @@ class ChatBubble extends ConsumerWidget {
         },
         child: Container(
           constraints: BoxConstraints(maxWidth: 220),
-          padding: AppPaddingStyles.paddingA12,
+          padding: AppPagePadding.all10(),
           decoration: BoxDecoration(
-            borderRadius: AppRadiusStyles.borderRadius16,
+            borderRadius: AppRadius.circular16,
             color: bubbleColor,
           ),
           child: Column(
