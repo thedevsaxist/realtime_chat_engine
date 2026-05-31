@@ -23,7 +23,7 @@ class DatabaseHelper {
     final path = join(dbPath, 'app.db');
     debugPrint("App database can be found at: $path");
 
-    return await openDatabase(path, version: 3, onCreate: _onCreate, onUpgrade: _onUpgrade);
+    return await openDatabase(path, version: 6, onCreate: _onCreate, onUpgrade: _onUpgrade);
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -50,6 +50,18 @@ class DatabaseHelper {
         )
       ''');
     }
+    if (oldVersion < 4) {
+      await db.execute('ALTER TABLE conversations ADD COLUMN lastReadByMeMessageId TEXT');
+      await db.execute('ALTER TABLE conversations ADD COLUMN lastReadByPeerMessageId TEXT');
+    }
+
+    if (oldVersion < 5) {
+      await db.execute('ALTER TABLE conversations ADD COLUMN lastReadByPeerAt INTEGER');
+    }
+
+    if (oldVersion < 6) {
+      await db.execute('ALTER TABLE conversations ADD COLUMN lastReadByMeAt INTEGER');
+    }
   }
 
   Future<void> _onCreate(Database db, int version) async {
@@ -68,7 +80,11 @@ class DatabaseHelper {
         id TEXT PRIMARY KEY,
         createdAt INTEGER,
         lastMessage TEXT,
-        lastMessageTime INTEGER
+        lastMessageTime INTEGER,
+        lastReadByMeMessageId TEXT,
+        lastReadByPeerMessageId TEXT,
+        lastReadByPeerAt INTEGER
+        lastReadByMeAt INTEGER
       )
     ''');
 

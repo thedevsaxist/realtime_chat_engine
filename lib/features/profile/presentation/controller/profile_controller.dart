@@ -38,7 +38,7 @@ class ProfileController extends StateNotifier<ProfileState> {
   }
 
   Future<void> _init() async {
-    final user = await _localStorage.getUser();
+    final user = await _localStorage.getUser('ProfileController._init()');
 
     if (user == null) {
       state = ErrorState();

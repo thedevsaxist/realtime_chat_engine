@@ -18,7 +18,7 @@ class AuthLocalStorage {
     await db.insert('users', user.toJson(), conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
-  Future<UserModel?> getUser() async {
+  Future<UserModel?> getUser(String? caller) async {
     try {
       final db = await _helper.database;
       final result = await db.query('users', limit: 1);
@@ -33,7 +33,7 @@ class AuthLocalStorage {
         return null;
       }
 
-      debugPrint("[AuthLocalStorage -> getUser()] ${row.toString()}");
+      debugPrint("[AuthLocalStorage -> getUser() | Called by $caller] ${row.toString()}");
       return UserModel.fromJson(row);
     } catch (e, st) {
       throw Exception("[AuthLocalStorage.getUser] -> ${e.toString()} \n $st");

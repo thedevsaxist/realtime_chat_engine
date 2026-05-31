@@ -2,11 +2,12 @@ import 'package:realtime_chat_engine/features/chat/data/models/mark_as_read_res_
 
 class MarkAsReadResEntity {
   final bool success;
+  final DateTime? readAt;
 
-  const MarkAsReadResEntity({required this.success});
+  const MarkAsReadResEntity({required this.success, this.readAt});
 
   factory MarkAsReadResEntity.fromModel(MarkAsReadResModel model) =>
-      MarkAsReadResEntity(success: model.success);
+      MarkAsReadResEntity(success: model.success, readAt: model.readAt);
 
-  MarkAsReadResModel toModel() => MarkAsReadResModel(success: success);
+  MarkAsReadResModel toModel() => MarkAsReadResModel(success: success, readAt: readAt);
 }

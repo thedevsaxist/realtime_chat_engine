@@ -61,7 +61,7 @@ class AuthController extends StateNotifier<AuthState> {
     interceptor?.onLogout = logOut;
 
     final token = await _authSecureStorage.getToken();
-    final user = await _authLocalStorage.getUser();
+    final user = await _authLocalStorage.getUser('AuthController._init()');
 
     if (token != null && user != null) {
       state = Authenticated(userId: user.id, token: token);

@@ -10,9 +10,39 @@ abstract class ChatRepository {
   Future<MarkAsReadResEntity> markAsRead({
     required String conversationId,
     required String lastMessageId,
+    // required String lastReadAt,
   });
-  Future<int> getUnreadCount({required String conversationId});
-  Future<GetMessagesResEntity> getMessages(String conversationId);
+
+  Future<int> getUnreadCount({required String conversationId, required String userId});
+  Future<GetMessagesResEntity> getMessages(String conversationId, {required String userId});
+
+  Future<List<MessageEntity>> applyReadState({
+    required List<MessageEntity> messages,
+    required String conversationId,
+    required String userId,
+  });
+
+  Future<String?> getLastReadByMe(String conversationId);
+
+  Future<bool> isMessageAtOrAfter({
+    required String conversationId,
+    required String messageId,
+    required String referenceMessageId,
+  });
+
+  Future<void> saveLocalReadPosition({
+    required String conversationId,
+    required String lastMessageId,
+    required int lastReadAt,
+  });
+
+  Future<void> savePeerReadReceipt({
+    required String conversationId,
+    required String lastMessageId,
+    required int lastReadAt,
+  });
+
+  Future<void> syncPeerReadFromServer({required String conversationId});
   Future<GetConversationsResEntity> getConversations(String userId);
   Future<ConversationEntity> createConversation(CreateConversationReqEntity req);
 

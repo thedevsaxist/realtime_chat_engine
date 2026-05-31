@@ -1,3 +1,4 @@
+import 'package:realtime_chat_engine/features/chat/data/models/get_peer_read_position_res_model.dart';
 import 'package:riverpod/riverpod.dart';
 import 'package:realtime_chat_engine/core/config/network/dio_service.dart';
 import 'package:realtime_chat_engine/features/home/data/models/conversation_model.dart';
@@ -21,6 +22,11 @@ class ChatClient {
     );
 
     return MarkAsReadResModel.fromJson(response.data);
+  }
+
+  Future<GetPeerReadPositionResModel?> getPeerReadPosition(String conversationId) async {
+    final response = await _dioService.dio.get('/conversations/$conversationId/peer-read');
+    return GetPeerReadPositionResModel.fromJson(response.data);
   }
 
   Future<int> getUnreadCount({required String conversationId}) async {

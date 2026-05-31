@@ -109,4 +109,165 @@ class ConversationDao {
     await db.delete('user_conversations');
     await db.delete('conversation_participants');
   }
+
+  Future<({String? lastReadByMe, String? lastReadByPeer, DateTime? peerReadAt})> getReadState(
+    String conversationId,
+  ) async {
+    final db = await _helper.database;
+    final rows = await db.query(
+      'conversations',
+      columns: ['lastReadByMeMessageId', 'lastReadByPeerMessageId', 'lastReadByPeerAt'],
+      where: 'id = ?',
+      whereArgs: [conversationId],
+    );
+    if (rows.isEmpty) return (lastReadByMe: null, lastReadByPeer: null, peerReadAt: null);
+
+    final row = rows.first;
+    final peerReadAtMs = row['lastReadByPeerAt'] as int?;
+    return (
+      lastReadByMe: row['lastReadByMeMessageId'] as String?,
+      lastReadByPeer: row['lastReadByPeerMessageId'] as String?,
+      peerReadAt: peerReadAtMs != null ? DateTime.fromMillisecondsSinceEpoch(peerReadAtMs) : null,
+    );
+  }
+
+  Future<void> setLastReadByMe(String conversationId, String messageId, int lastReadAt) async {
+    await _setReadCursor(
+      conversationId: conversationId,
+      column: 'lastReadByMeMessageId',
+      lastReadAt: lastReadAt,
+      messageId: messageId,
+    );
+  }
+
+  Future<void> setLastReadByPeer(String conversationId, String messageId, int lastReadAt) async {
+    final current = await getReadState(conversationId);
+    if (current.lastReadByPeer != null) {
+      final isNewer = await isMessageAtOrAfter(conversationId, messageId, current.lastReadByPeer!);
+      if (!isNewer) return;
+    }
+    await _setReadCursor(
+      conversationId: conversationId,
+      column: 'lastReadByPeerMessageId',
+      lastReadAt: lastReadAt,
+      messageId: messageId,
+    );
+  }
+
+  Future<int> getLocalUnreadCount(
+    String conversationId,
+    String userId,
+    Future<int> Function({required String conversationId}) fallbackToRemote,
+  ) async {
+    final db = await _helper.database;
+    final readState = await getReadState(conversationId);
+
+    // Build the query based on what we know
+    String? where;
+    List<Object?>? whereArgs;
+
+    if (readState.lastReadByMe != null) {
+      // Find the timestamp of the last message I read
+      final lastReadRow = await db.query(
+        'messages',
+        columns: ['createdAt'],
+        where: 'conversationId = ? AND id = ?',
+        whereArgs: [conversationId, readState.lastReadByMe],
+        limit: 1,
+      );
+
+      if (lastReadRow.isNotEmpty) {
+        final lastReadAt = lastReadRow.first['createdAt'] as int;
+        // Count peer messages strictly after that timestamp
+        where = 'conversationId = ? AND senderId != ? AND createdAt > ?';
+        whereArgs = [conversationId, userId, lastReadAt];
+      } else {
+        // lastReadByMe ID exists in state but not in local DB —
+        // we can't trust local state, fall through to API
+        return fallbackToRemote(conversationId: conversationId);
+      }
+    } else {
+      // No read state at all — every peer message is unread
+      where = 'conversationId = ? AND senderId != ?';
+      whereArgs = [conversationId, userId];
+    }
+
+    final result = await db.rawQuery(
+      'SELECT COUNT(*) as count FROM messages WHERE $where',
+      whereArgs,
+    );
+
+    return Sqflite.firstIntValue(result) ?? 0;
+  }
+
+  Future<void> _setReadCursor({
+    required String conversationId,
+    required String column,
+    required String messageId,
+    required int lastReadAt,
+  }) async {
+    final db = await _helper.database;
+
+    final isMe = column == 'lastReadByMeMessageId';
+    final messageIdCol = isMe ? 'lastReadByMeMessageId' : 'lastReadByPeerMessageId';
+    final readAtCol = isMe ? 'lastReadByMeAt' : 'lastReadByPeerAt';
+
+    final updated = await db.update(
+      'conversations',
+      {messageIdCol: messageId, readAtCol: lastReadAt},
+      where: 'id = ?',
+      whereArgs: [conversationId],
+    );
+
+    if (updated == 0) {
+      await db.insert('conversations', {
+        'id': conversationId,
+        'createdAt': DateTime.now().millisecondsSinceEpoch,
+        'lastMessage': '',
+        'lastMessageTime': 0,
+        'lastReadByMeMessageId': isMe ? messageId : null,
+        'lastReadByMeAt': isMe ? lastReadAt : null,
+        'lastReadByPeerMessageId': isMe ? null : messageId,
+        'lastReadByPeerAt': isMe ? null : lastReadAt,
+      }, conflictAlgorithm: ConflictAlgorithm.replace);
+    }
+  }
+
+  Future<DateTime?> getMessageCreatedAt(String conversationId, String messageId) async {
+    final db = await _helper.database;
+    final rows = await db.query(
+      'messages',
+      columns: ['createdAt'],
+      where: 'conversationId = ? AND id = ?',
+      whereArgs: [conversationId, messageId],
+      limit: 1,
+    );
+    if (rows.isEmpty) return null;
+    return DateTime.fromMillisecondsSinceEpoch(rows.first['createdAt'] as int);
+  }
+
+  Future<bool> isMessageAtOrAfter(
+    String conversationId,
+    String messageId,
+    String referenceMessageId,
+  ) async {
+    final db = await _helper.database;
+    final rows = await db.query(
+      'messages',
+      columns: ['id', 'createdAt'],
+      where: 'conversationId = ? AND id IN (?, ?)',
+      whereArgs: [conversationId, messageId, referenceMessageId],
+    );
+    if (rows.length < 2) return true;
+
+    int? messageAt;
+    int? referenceAt;
+    for (final row in rows) {
+      final at = row['createdAt'] as int;
+      if (row['id'] == messageId) messageAt = at;
+      if (row['id'] == referenceMessageId) referenceAt = at;
+    }
+    if (messageAt == null || referenceAt == null) return true;
+    return messageAt >= referenceAt;
+  }
 }

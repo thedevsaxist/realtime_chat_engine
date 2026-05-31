@@ -42,14 +42,34 @@ final chatControllerProvider = StateNotifierProvider.family
       (ref, conversationId) => ChatController(ref, conversationId),
     );
 
-// unread count — family so each conversation has its own count
-final unreadCountProvider = FutureProvider.family.autoDispose<int, String>((ref, conversationId) {
-  final unreadCount = ref
-      .read(chatRepositoryProvider)
-      .getUnreadCount(conversationId: conversationId);
+// unread count — family so each conversation has its own count (local DB)
+final unreadCountProvider = FutureProvider.family.autoDispose<int, String>((
+  ref,
+  conversationId,
+) async {
+  // Invalidate when a new message arrives in this conversation
+  ref.listen(incomingMessageProvider, (_, next) {
+    next.whenData((message) {
+      if (message.conversationId == conversationId) {
+        ref.invalidateSelf();
+      }
+    });
+  });
 
-  debugPrint(unreadCount.toString());
-  return unreadCount;
+  ref.listen(incomingReadReceiptProvider, (_, next) {
+    next.whenData((receipt) {
+      if (receipt.conversationId == conversationId) {
+        ref.invalidateSelf();
+      }
+    });
+  });
+
+  final user = await ref.read(authLocalStorageProvider).getUser('unreadCountProvider');
+  if (user == null || user.id.isEmpty) return 0;
+
+  return ref
+      .read(chatRepositoryProvider)
+      .getUnreadCount(conversationId: conversationId, userId: user.id);
 });
 
 class ChatController extends StateNotifier<ChatData> {
@@ -79,7 +99,7 @@ class ChatController extends StateNotifier<ChatData> {
   }
 
   void _init() async {
-    final user = await _authLocalStorage.getUser();
+    final user = await _authLocalStorage.getUser('ChatController._init()');
 
     if (user == null) {
       debugPrint("UserModel not found");
@@ -93,15 +113,36 @@ class ChatController extends StateNotifier<ChatData> {
     }
 
     _chatRepository
-        .getMessages(conversationId)
-        .then((value) {
+        .getMessages(conversationId, userId: _userId!)
+        .then((value) async {
           state = state.copyWith(messages: value.messages, user: user);
-          markLatestAsRead();
+          await _hydrateLocalReadPosition();
         })
         .onError((error, stackTrace) {
           debugPrint(error.toString());
           state = state.copyWith(messages: [], user: user);
         });
+  }
+
+  Future<void> _hydrateLocalReadPosition() async {
+    final latest = latestPersistedMessageId;
+    if (latest == null) return;
+
+    if (await _isCaughtUpLocally(latest)) {
+      _lastMarkedMessageId = latest;
+    }
+  }
+
+  Future<bool> _isCaughtUpLocally(String latestMessageId) async {
+    final lastReadByMe = await _chatRepository.getLastReadByMe(conversationId);
+    if (lastReadByMe == null) return false;
+    if (lastReadByMe == latestMessageId) return true;
+
+    return _chatRepository.isMessageAtOrAfter(
+      conversationId: conversationId,
+      messageId: lastReadByMe,
+      referenceMessageId: latestMessageId,
+    );
   }
 
   /// Latest message with a server-persisted id (skips unacked optimistic sends).
@@ -135,24 +176,39 @@ class ChatController extends StateNotifier<ChatData> {
       _chatRepository.cacheMessage(incoming);
       state = state.copyWith(messages: [...state.messages, incoming]);
     }
+
+    if (incoming.senderId != _userId) {
+      ref.invalidate(unreadCountProvider(conversationId));
+      markLatestAsRead();
+    }
   }
 
-  void _handleReadReceipt(ReadReceiptEntity receipt) {
-    // ignore receipts for other conversations
-    if (receipt.conversationId != conversationId) return;
+  Future<void> _handleReadReceipt(ReadReceiptEntity receipt) async {
+    if (_userId == null) return;
 
-    // mark all messages up to lastMessageId as read
-    final updated = state.messages.map((m) {
-      final isRead =
-          m.createdAt.isBefore(
-            state.messages
-                .firstWhere((msg) => msg.id == receipt.lastMessageId, orElse: () => m)
-                .createdAt,
-          ) ||
-          m.id == receipt.lastMessageId;
+    await _applyPeerReadToState(receipt.conversationId, receipt.lastMessageId, receipt.readAt);
+  }
 
-      return m.copyWith(isRead: isRead);
-    }).toList();
+  Future<void> _applyPeerReadToState(
+    String targetConversationId,
+    String lastMessageId,
+    int lastReadAt,
+  ) async {
+    if (_userId == null) return;
+
+    await _chatRepository.savePeerReadReceipt(
+      conversationId: targetConversationId,
+      lastMessageId: lastMessageId,
+      lastReadAt: lastReadAt,
+    );
+
+    if (targetConversationId != conversationId) return;
+
+    final updated = await _chatRepository.applyReadState(
+      messages: state.messages,
+      conversationId: conversationId,
+      userId: _userId!,
+    );
 
     state = state.copyWith(messages: updated);
   }
@@ -185,17 +241,40 @@ class ChatController extends StateNotifier<ChatData> {
     final lastMessageId = latestPersistedMessageId;
     if (lastMessageId == null || lastMessageId == _lastMarkedMessageId) return;
 
+    if (await _isCaughtUpLocally(lastMessageId)) {
+      _lastMarkedMessageId = lastMessageId;
+      return;
+    }
+
+    // Reserve immediately so concurrent callers (load + scroll + listen) skip.
+    final previousMarked = _lastMarkedMessageId;
+    _lastMarkedMessageId = lastMessageId;
+
     try {
       final result = await _chatRepository.markAsRead(
         conversationId: conversationId,
         lastMessageId: lastMessageId,
+        // lastReadAt: readAt
       );
 
       if (result.success) {
-        _lastMarkedMessageId = lastMessageId;
+        if (!ref.mounted) return;
         ref.invalidate(unreadCountProvider(conversationId));
+
+        // ← apply the confirmed read position back to current message list
+        if (result.readAt != null) {
+          final updated = await _chatRepository.applyReadState(
+            messages: state.messages,
+            conversationId: conversationId,
+            userId: _userId!,
+          );
+          state = state.copyWith(messages: updated);
+        }
+      } else {
+        _lastMarkedMessageId = previousMarked;
       }
     } catch (e, st) {
+      _lastMarkedMessageId = previousMarked;
       debugPrint('markLatestAsRead failed: $e\n$st');
     }
   }

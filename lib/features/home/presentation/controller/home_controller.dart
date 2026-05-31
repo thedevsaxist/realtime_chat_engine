@@ -1,7 +1,7 @@
-import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:realtime_chat_engine/core/shared/message_bus.dart';
+import 'package:realtime_chat_engine/features/chat/presentation/controller/chat_controller.dart';
 import 'package:realtime_chat_engine/features/auth/domain/entities/user_entity.dart';
 import 'package:realtime_chat_engine/features/home/domain/entities/message_entity.dart';
 import 'package:realtime_chat_engine/features/chat/data/repo/chat_repository_impl.dart';
@@ -56,8 +56,7 @@ class HomeController extends StateNotifier<HomeControllerState> {
   void _init() async {
     state = HomeControllerStateLoading();
 
-    debugPrint("Getting user [HomeController —> _init()]");
-    final user = await _authLocalStorage.getUser();
+    final user = await _authLocalStorage.getUser('HomeController._init()');
 
     if (user == null) {
       state = HomeControllerStateError();
@@ -66,8 +65,6 @@ class HomeController extends StateNotifier<HomeControllerState> {
 
     try {
       final res = await _chatRepository.getConversations(user.id);
-
-      debugPrint("The conversation is this long ${res.conversations[0].messages?.length.toString()}");
 
       state = HomeControllerStateSuccess(res.conversations, UserEntity.fromModel(user));
     } catch (e, st) {
@@ -79,6 +76,9 @@ class HomeController extends StateNotifier<HomeControllerState> {
     final current = state;
 
     if (current is! HomeControllerStateSuccess) return;
+
+    _chatRepository.cacheMessage(newMessage);
+    ref.invalidate(unreadCountProvider(newMessage.conversationId));
 
     final updatedConversations = current.conversations.map((conv) {
       if (conv.id != newMessage.conversationId) return conv;
