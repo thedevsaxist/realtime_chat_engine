@@ -28,6 +28,22 @@ export class ChatController {
     }
   };
 
+  getConversationById = async (req: AuthRequest, res: Response, next: NextFunction) => {
+    try {
+      const userId = req.user?.userId;
+      const { conversationId } = req.params as { conversationId: string };
+
+      if (!userId || !conversationId) {
+        res.status(400).json({ message: 'userId and conversationId are required' });
+        return;
+      }
+      const conversation = await this.chatService.getConversationById(userId, conversationId);
+      res.status(200).json({ conversation });
+    } catch (error) {
+      next(error);
+    }
+  };
+
   markAsRead = async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
       const userId = req.user?.userId;
@@ -144,6 +160,20 @@ export class ChatController {
       res.status(200).json({
         messages,
       });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  deleteAccount = async (req: AuthRequest, res: Response, next: NextFunction) => {
+    try {
+      const userId = req.user?.userId;
+      if (!userId) {
+        res.status(401).json({ message: 'Unauthorized' });
+        return;
+      }
+      await this.chatService.deleteAccount(userId);
+      res.status(200).json({ message: 'Account deleted successfully' });
     } catch (error) {
       next(error);
     }

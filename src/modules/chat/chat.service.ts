@@ -24,6 +24,15 @@ export class ChatService {
     return raw.map((c: ConversationWithDetails) => formatConversation(c));
   }
 
+  async getConversationById(userId: string, conversationId: string) {
+    logger.debug(`ChatService.getConversationById: userId=${userId} conversationId=${conversationId}`);
+    const raw = await this.chatRepository.getConversationById(conversationId);
+    if (!raw) {
+      throw new AppError('Conversation not found', 404);
+    }
+    return formatConversation(raw);
+  }
+
   async markAsRead(userId: string, conversationId: string, lastMessageId: string) {
     if (!conversationId) {
       throw new AppError('conversationId is required', 400);
@@ -166,5 +175,11 @@ export class ChatService {
       throw new AppError('Conversation not found', 404);
     }
     return this.chatRepository.getMessages(data.conversationId, limit, data.before);
+  }
+
+  async deleteAccount(userId: string) {
+    logger.debug(`ChatService.deleteAccount: userId=${userId}`);
+    await this.chatRepository.deleteAccount(userId);
+    logger.info(`ChatService.deleteAccount: userId=${userId} deleted`);
   }
 }

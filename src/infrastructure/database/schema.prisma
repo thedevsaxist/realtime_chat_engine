@@ -7,13 +7,17 @@ datasource db {
 }
 
 model User {
-  id                       String                    @id @default(uuid())
-  email                    String                    @unique
-  password                 String
-  firstName                String
-  lastName                 String
-  createdAt                DateTime                  @default(now())
+  id        String    @id @default(uuid())
+  email     String    @unique
+  password  String
+  firstName String
+  lastName  String
+  createdAt DateTime  @default(now())
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+
   conversationParticipants ConversationParticipant[]
+  messages                 Message[]
 }
 
 model Conversation {
@@ -45,11 +49,12 @@ model RefreshToken {
 }
 
 model Message {
-  id                      String                          @id @default(uuid())
-  content                 String                    
-  senderId                String                    
-  conversationId          String                    
-  createdAt               DateTime                        @default(now())
-  conversation            Conversation                    @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  readCursors             ConversationParticipant[]
+  id             String       @id @default(uuid())
+  content        String
+  senderId       String
+  sender         User         @relation(fields: [senderId], references: [id])
+  conversationId String
+  createdAt      DateTime     @default(now())
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  readCursors    ConversationParticipant[]
 }

@@ -11,10 +11,11 @@ const chatService = new ChatService(chatRepository);
 const chatController = new ChatController(chatService);
 
 chatRoutes.get('/messages', chatController.getMessages);
+chatRoutes.delete('/account', chatController.deleteAccount);
 chatRoutes.get('/conversations', chatController.getConversations);
-chatRoutes.patch('/conversations/:conversationId/read/:lastMessageId', chatController.markAsRead);
-chatRoutes.post('/conversations', chatController.createConversation);
 chatRoutes.get('/conversations/unread', chatController.getUnreadCount);
+chatRoutes.post('/conversations', chatController.createConversation);
+chatRoutes.get('/conversations/:conversationId', chatController.getConversationById);
 chatRoutes.get('/conversations/:conversationId/peer-read', chatController.getPeerRead);
-
+chatRoutes.patch('/conversations/:conversationId/read/:lastMessageId', chatController.markAsRead);
 // chatRoutes.post('/messages', chatController.sendMessage);

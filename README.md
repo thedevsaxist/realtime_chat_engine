@@ -66,7 +66,7 @@ JWT_SECRET="your-super-secret-key"
 
 ## Database Setup
 
-Create/update the SQLite schema and Prisma client:
+Create/update the PostgreSQL schema and Prisma client:
 
 ```bash
 npx prisma db push

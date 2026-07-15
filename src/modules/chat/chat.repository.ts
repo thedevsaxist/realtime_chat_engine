@@ -74,10 +74,32 @@ export class ChatRepository {
     });
   }
 
+  async deleteAccount(userId: string) {
+    logger.debug(`DB write: user.delete userId=${userId}`);
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        isDeleted: true,
+        deletedAt: new Date(),
+        firstName: "Deleted",
+        lastName: "User",
+        email: `deleted_${userId}@deleted.local`,
+        password: "", // or invalidate however you handle auth
+      },
+    });
+    
+    // also clean up sessions
+    await prisma.refreshToken.deleteMany({ where: { userId } });
+  }
+
   async getConversationById(id: string) {
     logger.debug(`DB read: conversation.findUnique id=${id}`);
     return prisma.conversation.findUnique({
       where: { id },
+      include: {
+        ...participantsInclude,
+        messages: { orderBy: { createdAt: 'asc' } },
+      },
     });
   }
 
